@@ -22,33 +22,18 @@ in
       };
     };
 
+    programs.delta = {
+      enable = true;
+      enableGitIntegration = true;
+      options = {
+        line-numbers = true;
+        features = "catppuccin,sidebyside";
+      };
+    };
+
     programs.git = {
       enable = true;
-      userName = "Rémi Labeyrie";
-      userEmail = "calops@tocards.net";
       lfs.enable = true;
-
-      delta = {
-        enable = true;
-        options = {
-          line-numbers = true;
-          features = "catppuccin,sidebyside";
-        };
-      };
-
-      aliases = {
-        st = "status";
-        ci = "commit";
-        llg = "log --graph --pretty=tformat:'%Cred%h%Creset -%C(auto)%d%Creset %s %Cgreen(%an %ar)%Creset'";
-        lg = "llg -n25";
-        oops = "commit --amend --no-edit";
-        pushf = "push --force-with-lease";
-        mom = "merge origin/main --no-edit";
-        pum = "pull upstream main";
-        pom = "pull origin main --no-rebase";
-        dv = ''! args=$@; shift $#; nvim -c "DiffviewOpen $args"'';
-        db = ''! args=$@; shift $#; nvim -c "DiffviewOpen origin/HEAD...HEAD --imply-local)"'';
-      };
 
       ignores = [
         ".aws"
@@ -69,7 +54,12 @@ in
         "typings"
       ];
 
-      extraConfig = {
+      settings = {
+        user = {
+          name = "Rémi Labeyrie";
+          email = "calops@tocards.net";
+        };
+
         color.ui = "auto";
         core.whitespace = "-trailing-space";
         grep.extendedRegexp = true;
@@ -77,6 +67,20 @@ in
         mergetool.prompt = true;
         pull.rebase = "true";
         tag.sort = "version:refname";
+
+        alias = {
+          st = "status";
+          ci = "commit";
+          llg = "log --graph --pretty=tformat:'%Cred%h%Creset -%C(auto)%d%Creset %s %Cgreen(%an %ar)%Creset'";
+          lg = "llg -n25";
+          oops = "commit --amend --no-edit";
+          pushf = "push --force-with-lease";
+          mom = "merge origin/main --no-edit";
+          pum = "pull upstream main";
+          pom = "pull origin main --no-rebase";
+          dv = ''! args=$@; shift $#; nvim -c "DiffviewOpen $args"'';
+          db = ''! args=$@; shift $#; nvim -c "DiffviewOpen origin/HEAD...HEAD --imply-local)"'';
+        };
 
         diff = {
           tool = "difftastic";

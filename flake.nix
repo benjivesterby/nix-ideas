@@ -2,8 +2,7 @@
   description = "Home-manager configuration";
 
   inputs = {
-    # Upstream nixpkgs, last working commit of nixos-unstable for darwin
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
     # Flake framework
     blueprint.url = "github:numtide/blueprint";
@@ -85,7 +84,7 @@
     niri-caelestia-shell.url = "github:jutraim/niri-caelestia-shell";
     niri-caelestia-shell.inputs.nixpkgs.follows = "nixpkgs";
 
-    stasis.url = "github:saltnpepper97/stasis/v0.4.0";
+    stasis.url = "github:saltnpepper97/stasis/v0.4.12";
     stasis.flake = false;
   };
 

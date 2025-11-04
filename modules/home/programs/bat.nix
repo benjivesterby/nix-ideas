@@ -17,7 +17,8 @@
       };
       extraPackages = with pkgs.bat-extras; [
         batman
-        batgrep
+        # TODO: broken
+        # batgrep
         batwatch
       ];
       themes = {

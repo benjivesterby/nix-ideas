@@ -15,5 +15,9 @@
       enable = true;
       runAsService = true;
     };
+
+    programs.elephant = {
+      enable = true;
+    };
   };
 }

@@ -31,7 +31,6 @@ in
         version = 3;
         final_space = false;
         shell_integration = true;
-        async = true;
         blocks = [
           {
             alignment = "left";

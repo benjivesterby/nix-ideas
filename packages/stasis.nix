@@ -5,10 +5,10 @@
 }:
 pkgs.rustPlatform.buildRustPackage {
   pname = "stasis";
-  version = "0.1.0";
+  version = "0.4.12";
 
   src = inputs.stasis;
-  cargoHash = "sha256-pdknkH83ONwSAVphUVGceV0vk/69tsVG9wu4ULnd7u8=";
+  cargoHash = "sha256-M5L6kcx/FY+cusYhVSDoKCyuH0LpaPXzBo3wJZsLQak=";
 
   buildInputs = [
     pkgs.dbus
