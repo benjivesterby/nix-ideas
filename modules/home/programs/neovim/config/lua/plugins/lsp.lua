@@ -83,6 +83,21 @@ return {
 	},
 
 	{
+		"rachartier/tiny-inline-diagnostic.nvim",
+		event = "VeryLazy",
+		opts = {
+			options = {
+				multilines = {
+					enabled = true,
+					always_show = true,
+				},
+				show_source = { enabled = true },
+				show_all_diags_on_cursorline = true,
+			},
+		},
+	},
+
+	{
 		"folke/lazydev.nvim",
 		ft = "lua",
 		dependencies = { "Bilal2453/luvit-meta" },

@@ -97,6 +97,7 @@ return {
 				explorer = { enabled = true },
 				input = { enabled = true },
 				image = { enabled = true },
+				gh = { enabled = true },
 				picker = {
 					ui_select = true,
 					db = { sqlite3_path = vim.g.sqlite_clib_path },
@@ -167,7 +168,10 @@ return {
 				return function() Snacks.picker[command](args) end
 			end
 
-			require("core.utils").map { "<leader>f", group = "finder", icon = "", mode = { "n", "v" } }
+			require("core.utils").map {
+				{ "<leader>f", group = "finder", icon = "", mode = { "n", "v" } },
+				{ "<leader>gh", group = "github", icon = " ", mode = { "n", "v" } },
+			}
 
 			return {
 				{ "<leader>f", group = "finder", icon = "", mode = { "n", "v" } },
@@ -176,6 +180,12 @@ return {
 				{ "<leader>gl", function() Snacks.lazygit.log() end, desc = "Lazygit Log (cwd)" },
 				{ "<leader>gb", function() Snacks.git.blame_line() end, desc = "Git Blame Line" },
 				{ "<leader>ds", function() Snacks.profiler.scratch() end, desc = "Profiler Scratch Bufer" },
+
+				{ "<leader>ghi", picker("gh_issue"), desc = "GitHub Issues (open)" },
+				{ "<leader>ghI", picker("gh_issue", { state = "all" }), desc = "GitHub Issues (all)" },
+				{ "<leader>ghp", picker("gh_pr"), desc = "GitHub Pull Requests (open)" },
+				{ "<leader>ghP", picker("gh_pr", { state = "all" }), desc = "GitHub Pull Requests (all)" },
+
 				{ "<C-p>", picker("smart", { multi = { "files" }, hidden = true }), desc = "Find files" },
 				{ "<leader>fb", picker("buffers"), desc = "Find buffers" },
 				{ "<leader>fs", picker("grep"), desc = "Find string" },

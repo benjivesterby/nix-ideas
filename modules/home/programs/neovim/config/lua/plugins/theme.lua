@@ -64,18 +64,6 @@ local function hl_override(palette)
 		TreesitterContextBottom = { bg = palette.base, sp = palette.surface1, style = { "underdashed" } },
 		TreesitterContextLineNumber = { link = "LineNr" },
 
-		DiagnosticLineError = { bg = colors.darken(palette.red, 0.095, palette.base) },
-		DiagnosticLineWarn = { bg = colors.darken(palette.yellow, 0.095, palette.base) },
-		DiagnosticLineInfo = { bg = colors.darken(palette.sky, 0.095, palette.base) },
-		DiagnosticLineHint = { bg = colors.darken(palette.teal, 0.095, palette.base) },
-
-		DiagnosticSignError = { fg = palette.red, bg = colors.darken(palette.red, 0.095) },
-		DiagnosticSignWarn = { fg = palette.yellow, bg = colors.darken(palette.yellow, 0.095) },
-		DiagnosticSignInfo = { fg = palette.sky, bg = colors.darken(palette.sky, 0.095) },
-		DiagnosticSignHint = { fg = palette.teal, bg = colors.darken(palette.teal, 0.095) },
-
-		IblScope = { fg = palette.mauve },
-
 		ModeNormal = { fg = palette.blue, bg = colors.darken(palette.blue, 0.33), style = { "bold" } },
 		ModeInsert = { fg = palette.green, bg = colors.darken(palette.green, 0.33), style = { "bold" } },
 		ModeVisual = { fg = palette.mauve, bg = colors.darken(palette.mauve, 0.33), style = { "bold" } },
