@@ -3,13 +3,12 @@
   config,
   perSystem,
   pkgs,
-  inputs,
   ...
 }:
 {
   config = lib.mkIf (pkgs.stdenv.isLinux && config.my.roles.graphical.enable) {
     home.packages = [
-      perSystem.self.stasis
+      perSystem.stasis.stasis
       pkgs.brightnessctl
     ];
 

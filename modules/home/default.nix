@@ -2,6 +2,8 @@
   inputs,
   config,
   perSystem,
+  pkgs,
+  lib,
   ...
 }:
 {
@@ -24,5 +26,7 @@
     home.packages = [
       perSystem.nix-index-database.nix-index-with-db
     ];
+
+    nix.package = lib.mkDefault pkgs.nix;
   };
 }

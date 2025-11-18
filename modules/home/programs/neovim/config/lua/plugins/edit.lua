@@ -123,14 +123,23 @@ return {
 		keys = {
 			{
 				"<leader>o",
-				-- function() vim.cmd.Fyler("dir=" .. vim.fn.expand("%:p:h")) end,
-				function() vim.cmd.Fyler() end,
-				desc = "Edit filesystem as a buffer",
+				function() vim.cmd.Fyler("dir=" .. vim.fn.expand("%:p:h")) end,
+				desc = "Edit filesystem (current dir)",
+			},
+			{
+				"<leader>O",
+				vim.cmd.Fyler,
+				desc = "Edit filesystem (project dir)",
 			},
 		},
 		opts = {
-			default_explorer = true,
-			win = { win_opts = { relativenumber = false } },
+			views = {
+				finder = {
+					default_explorer = true,
+					close_on_select = false,
+					watcher = { enabled = true },
+				},
+			},
 		},
 	},
 	-- Move stuff around

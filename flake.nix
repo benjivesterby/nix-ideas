@@ -84,8 +84,8 @@
     niri-caelestia-shell.url = "github:jutraim/niri-caelestia-shell";
     niri-caelestia-shell.inputs.nixpkgs.follows = "nixpkgs";
 
-    stasis.url = "github:saltnpepper97/stasis/v0.4.12";
-    stasis.flake = false;
+    stasis.url = "github:saltnpepper97/stasis";
+    stasis.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =

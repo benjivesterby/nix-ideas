@@ -49,7 +49,7 @@ in
             }
 
             // TODO: proper nix options for this
-            output "DP-3" {
+            output "DP-1" {
               mode "3440x1440@170.000"
               variable-refresh-rate
             }
