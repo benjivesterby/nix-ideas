@@ -7,7 +7,6 @@
     "https://install.determinate.systems"
     "https://niri.cachix.org"
     "https://nix-community.cachix.org"
-    "https://nix-gaming.cachix.org"
     "https://nix-darwin.cachix.org"
   ];
 
@@ -19,7 +18,6 @@
     "calops.cachix.org-1:6RTG80il2oS2ECFeG2QubG+mvD9OJc1s6Lm9JGAFcM0="
     "niri.cachix.org-1:Wv0OmO7PsuocRKzfDoJ3mulSl7Z6oezYhGhR+3W2964="
     "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-    "nix-gaming.cachix.org-1:nbjlureqMbRAxR1gJ/f3hxemL9svXaZF/Ees8vCUUs4="
     "nix-darwin.cachix.org-1:LxMyKzQk7Uqkc1Pfq5uhm9GSn07xkERpy+7cpwc006A="
   ];
 }

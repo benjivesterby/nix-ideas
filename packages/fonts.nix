@@ -2,7 +2,8 @@
   perSystem,
   pkgs,
   ...
-}: {
+}:
+{
   aporetic-sans = {
     name = "Aporetic Sans";
     package = perSystem.aporetic.aporetic-sans-prebuilt;
@@ -25,7 +26,7 @@
   };
   noto-emoji = {
     name = "Noto Emoji";
-    package = pkgs.noto-fonts-emoji;
+    package = pkgs.noto-fonts-color-emoji;
   };
   dina = {
     name = "Dina";

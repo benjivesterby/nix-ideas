@@ -49,8 +49,8 @@ in
             }
 
             // TODO: proper nix options for this
-            output "DP-1" {
-              mode "3440x1440@170.000"
+            output "${config.my.roles.graphical.monitors.primary.name}" {
+              mode "${config.my.roles.graphical.monitors.primary.resolution}"
               variable-refresh-rate
             }
 
@@ -103,7 +103,6 @@ in
             }
 
             environment {
-                // "DISPLAY" ":0"
                 "ELECTRON_OZONE_PLATFORM_HINT" "auto"
                 "GBM_BACKEND" "nvidia-drm"
                 "LIBVA_DRIVER_NAME" "nvidia"
@@ -111,50 +110,56 @@ in
             }
 
             binds {
-                Mod+Ampersand       { focus-workspace "web"; }
-                Mod+Apostrophe      { focus-workspace "chat"; }
-                Mod+Backspace       { switch-preset-column-width; }
-                Mod+Tab             { toggle-overview; }
-                Mod+C               { center-column; }
-                Mod+T               { toggle-column-tabbed-display; }
-                Mod+Ctrl+F          { fullscreen-window; }
-                Mod+Ctrl+Left       { move-column-left; }
-                Mod+Ctrl+Right      { move-column-right; }
                 Mod+Ctrl+S          { screenshot-screen; }
-                Mod+Down            { focus-window-or-workspace-down; }
+                Mod+S               { screenshot; }
+                Mod+Shift+S         { screenshot-window; }
+                Mod+Ctrl+Shift+S    { spawn-sh "wl-paste | ${pkgs.satty} --filename -"; }
+
+                Mod+Ampersand       { focus-workspace "web"; }
                 Mod+Eacute          { focus-workspace "dev"; }
-                Mod+End             { focus-column-last; }
-                Mod+Equal           { set-column-width "-10%"; }
-                Mod+F               { maximize-column; }
-                Mod+Home            { focus-column-first; }
-                Mod+L               { spawn-sh "${lock}"; }
-                Mod+Left            { focus-column-left; }
+                Mod+Quotedbl        { focus-workspace "work"; }
+                Mod+Apostrophe      { focus-workspace "chat"; }
+                Mod+Parenleft       { focus-workspace "games"; }
                 Mod+Minus           { focus-workspace "misc"; }
-                Mod+N               { spawn-sh "${lib.getExe' config.services.swaync.package "swaync-client"} -t"; }
+
+                Mod+Down            { focus-window-or-workspace-down; }
+                Mod+Up              { focus-window-or-workspace-up; }
+                Mod+Left            { focus-column-left; }
+                Mod+Right           { focus-column-right; }
                 Mod+Page_Down       { focus-workspace-down; }
                 Mod+Page_Up         { focus-workspace-up; }
-                Mod+Parenleft       { focus-workspace "games"; }
-                Mod+Plus            { set-column-width "+10%"; }
-                Mod+Quotedbl        { focus-workspace "work"; }
-                Mod+Return          { spawn-sh "kitty"; }
-                Mod+Right           { focus-column-right; }
-                Mod+S               { screenshot; }
-                Mod+Shift+Comma     { show-hotkey-overlay; }
                 Mod+Shift+Down      { move-window-down-or-to-workspace-down; }
-                Mod+Shift+E         { quit; }
-                Mod+Shift+End       { move-column-to-last; }
-                Mod+Shift+F         { toggle-window-floating; }
-                Mod+Shift+Home      { move-column-to-first; }
+                Mod+Shift+Up        { move-window-up-or-to-workspace-up; }
+                Mod+Shift+Right     { consume-or-expel-window-right; }
                 Mod+Shift+Left      { consume-or-expel-window-left; }
                 Mod+Shift+Page_Down { move-workspace-down; }
                 Mod+Shift+Page_Up   { move-workspace-up; }
+                Mod+Ctrl+Left       { move-column-left; }
+                Mod+Ctrl+Right      { move-column-right; }
+
+                Mod+T               { toggle-column-tabbed-display; }
+                Mod+Shift+F         { toggle-window-floating; }
+                Mod+C               { center-column; }
+                Mod+Home            { focus-column-first; }
+                Mod+End             { focus-column-last; }
+                Mod+Shift+End       { move-column-to-last; }
+                Mod+Shift+Home      { move-column-to-first; }
                 Mod+Shift+Q         { close-window; }
-                Mod+Shift+Right     { consume-or-expel-window-right; }
-                Mod+Shift+S         { screenshot-window; }
-                Mod+Shift+Up        { move-window-up-or-to-workspace-up; }
+
+                Mod+Backspace       { switch-preset-column-width; }
+                Mod+Ctrl+F          { fullscreen-window; }
+                Mod+Equal           { set-column-width "-10%"; }
+                Mod+F               { maximize-column; }
+
+                Mod+Tab             { toggle-overview; }
+                Mod+L               { spawn-sh "${lock}"; }
+                Mod+N               { spawn-sh "${lib.getExe' config.services.swaync.package "swaync-client"} -t"; }
+                Mod+Plus            { set-column-width "+10%"; }
+                Mod+Return          { spawn-sh "kitty"; }
+                Mod+Shift+Comma     { show-hotkey-overlay; }
+                Mod+Shift+E         { quit; }
                 Mod+Space           { spawn-sh "anyrun"; }
                 Mod+Shift+Space     { spawn-sh "1password --quick-access"; }
-                Mod+Up              { focus-window-or-workspace-up; }
 
                 Mod+Shift+WheelScrollDown cooldown-ms=150 { focus-column-right; }
                 Mod+Shift+WheelScrollUp   cooldown-ms=150 { focus-column-left;  }
@@ -265,23 +270,5 @@ in
       pkgs.nautilus
       pkgs.xwayland-satellite
     ];
-
-    # systemd.user.services.xwayland-satellite = {
-    #   Unit = {
-    #     Description = "XWayland Satellite";
-    #     PartOf = [ "graphical-session.target" ];
-    #     After = [ "graphical-session.target" ];
-    #   };
-    #
-    #   Service = {
-    #     ExecStart = lib.getExe pkgs.xwayland-satellite;
-    #     Restart = "on-failure";
-    #     KillMode = "mixed";
-    #   };
-    #
-    #   Install = {
-    #     WantedBy = [ "graphical-session.target" ];
-    #   };
-    # };
   };
 }

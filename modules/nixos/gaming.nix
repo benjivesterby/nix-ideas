@@ -2,15 +2,10 @@
   lib,
   config,
   pkgs,
-  inputs,
   ...
 }:
 {
   options.my.roles.gaming.enable = lib.mkEnableOption "Enable gaming configuration";
-
-  imports = [
-    inputs.nix-gaming.nixosModules.pipewireLowLatency
-  ];
 
   config = lib.mkIf config.my.roles.gaming.enable {
     programs.gamemode.enable = true;
@@ -40,7 +35,8 @@
       extraPackages32 = [ pkgs.mangohud ];
     };
 
-    hardware.xpadneo.enable = true; # Xbox One controller driver
+    # FIXME: broken
+    hardware.xpadneo.enable = false; # Xbox One controller driver
 
     environment.systemPackages = [
       pkgs.protontricks
@@ -52,7 +48,5 @@
       enable = true;
       motherboard = "intel";
     };
-
-    services.pipewire.lowLatency.enable = true;
   };
 }

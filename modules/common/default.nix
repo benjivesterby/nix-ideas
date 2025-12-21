@@ -17,6 +17,7 @@
       in
       {
         enable = true;
+        enableReleaseChecks = false;
         image = pkgs.fetchurl {
           url = "https://w.wallhaven.cc/full/d6/wallhaven-d6j79o.png";
           hash = "sha256-4nFo0PPlESqoFWZhEtA9JvFnOChOIxxcZq/FqiYNfCw=";

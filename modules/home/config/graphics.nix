@@ -24,9 +24,13 @@ let
     };
     monitor = types.submodule {
       options = {
-        id = mkOption {
+        name = mkOption {
           type = types.str;
           description = "Monitor name";
+        };
+        resolution = mkOption {
+          type = types.str;
+          description = "Monitor resolution";
         };
         position = mkOption {
           type = types.enum [
@@ -129,10 +133,6 @@ in
       monitors = {
         primary = lib.mkOption {
           type = my.types.monitor;
-          default = {
-            id = "eDP-1";
-            position = "center";
-          };
           description = "Primary monitor";
         };
         secondary = lib.mkOption {
@@ -153,7 +153,7 @@ in
     ]
     ++ (lib.lists.optionals (!pkgs.stdenv.isDarwin) [
       pkgs.google-chrome
-      pkgs.rquickshare
+      # pkgs.rquickshare FIXME: broken
       pkgs.waypipe
       pkgs.wl-clipboard
     ])

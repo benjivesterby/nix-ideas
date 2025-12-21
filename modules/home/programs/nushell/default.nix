@@ -47,5 +47,6 @@ in
       enable = true;
       activeTheme = "catppuccin-mocha";
     };
+    stylix.targets.vivid.enable = false;
   };
 }

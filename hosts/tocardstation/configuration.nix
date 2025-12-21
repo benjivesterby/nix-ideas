@@ -33,20 +33,6 @@
     bluetooth.enable = true;
   };
 
-  # Adjust audio sample rate
-  # services.pipewire.extraConfig.pipewire.adjust-sample-rate = {
-  #   "context.properties" = {
-  #     "default.clock.rate" = 92000;
-  #     "default.clock.allowed-rates" = [
-  #       44100
-  #       48000
-  #       92000
-  #       192000
-  #     ];
-  #   };
-  # };
-
-  # Last known kernel with working wifi driver
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
   # SSD periodic trimming
@@ -58,10 +44,7 @@
   # Logitech device manager
   services.solaar.enable = true;
 
-  boot = {
-    # initrd.luks.devices.rootDrive.device = "/dev/disk/by-uuid/ab146bd7-2e99-4aa7-a115-040df4acc43d";
-    supportedFilesystems = [ "ntfs" ];
-  };
+  boot.supportedFilesystems = [ "ntfs" ];
 
   fileSystems = {
     "/mnt/stuff" = {

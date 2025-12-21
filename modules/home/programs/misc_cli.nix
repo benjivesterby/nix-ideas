@@ -10,7 +10,7 @@
       pkgs.megacmd
       pkgs.ast-grep
       pkgs.choose
-      pkgs.du-dust
+      pkgs.dust
       pkgs.fclones
       pkgs.fd
       pkgs.rm-improved
