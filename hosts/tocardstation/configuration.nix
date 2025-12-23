@@ -33,7 +33,8 @@
     bluetooth.enable = true;
   };
 
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+  # FIXME: on latest kernel, stable nvidia fails to compile and beta nvidia is buggy
+  boot.kernelPackages = pkgs.linuxPackages_6_17;
 
   # SSD periodic trimming
   services.fstrim.enable = true;
