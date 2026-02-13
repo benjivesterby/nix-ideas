@@ -34,7 +34,7 @@
 
     # Niri window manager
     niri-src.url = "github:yalter/niri";
-    niri.url = "github:calops/niri-flake/";
+    niri.url = "github:sodiboo/niri-flake/";
     niri.inputs.nixpkgs.follows = "nixpkgs";
     niri.inputs.niri-unstable.follows = "niri-src";
 

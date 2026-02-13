@@ -34,7 +34,7 @@
   };
 
   # FIXME: on latest kernel, stable nvidia fails to compile and beta nvidia is buggy
-  boot.kernelPackages = pkgs.linuxPackages_6_17;
+  boot.kernelPackages = pkgs.linuxPackages_latest;
 
   # SSD periodic trimming
   services.fstrim.enable = true;

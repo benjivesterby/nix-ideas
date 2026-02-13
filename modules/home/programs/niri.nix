@@ -16,7 +16,8 @@ let
 in
 {
   imports = [
-    inputs.niri.homeModules.config
+    # TODO: update my niri-flake fork so that this can work again for standalone hm
+    # inputs.niri.homeModules.config
   ];
 
   config = lib.mkIf (config.my.roles.graphical.enable && !pkgs.stdenv.isDarwin) {

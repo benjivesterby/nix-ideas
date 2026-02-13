@@ -23,9 +23,9 @@ in
         '';
 
       plugins = [
-        # TODO: uncomment once package isn't broken
+        # TODO: uncomment once packages aren't broken
         # pkgs.nushellPlugins.highlight
-        pkgs.nushellPlugins.skim
+        # pkgs.nushellPlugins.skim
       ];
     };
 

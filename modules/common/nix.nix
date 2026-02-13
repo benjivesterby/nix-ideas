@@ -8,7 +8,7 @@
       "flakes"
       "nix-command"
       "pipe-operators"
-      "ca-derivations"
+      # "ca-derivations"
     ];
 
     trusted-users = [

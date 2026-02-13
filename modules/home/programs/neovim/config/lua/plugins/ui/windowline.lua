@@ -55,19 +55,19 @@ return {
 					{ filename, guibg = color },
 				}
 
-				local diag_counts = utils.diag_count_for_buffer(props.buf)
+				local diag_counts = vim.diagnostic.count(props.buf)
 				local prev_color = color
 
 				for severity, count in ipairs(diag_counts) do
 					if count > 0 then
 						local sigh_hl = diag.sign_hl(severity)
-						table.insert(result, { "", guifg = prev_color, guibg = f(sigh_hl.bg) })
+						table.insert(result, { "", guifg = prev_color, guibg = sigh_hl.bg })
 						table.insert(result, {
 							" " .. diag.sign(severity) .. count,
-							guifg = f(sigh_hl.fg),
-							guibg = f(sigh_hl.bg),
+							guifg = sigh_hl.fg,
+							guibg = sigh_hl.bg,
 						})
-						prev_color = f(sigh_hl.bg)
+						prev_color = sigh_hl.bg
 					end
 				end
 

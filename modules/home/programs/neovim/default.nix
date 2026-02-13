@@ -104,7 +104,6 @@ in
           settings = {
             nixd = {
               nixpkgs = { expr = { 'import (${flake}).inputs.nixpkgs {}' } },
-              formatting = { command = { '${lib.getExe pkgs.nixfmt-rfc-style}' } },
               options = {
                 nixos = { expr = { '(${flake}).nixosConfigurations.tocardstation.options' } },
                 homeManager = { expr = { '(${flake}).homeConfigurations.tocardstation.options' }, },

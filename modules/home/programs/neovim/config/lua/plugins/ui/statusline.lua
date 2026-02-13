@@ -222,7 +222,9 @@ local tabs = {
 						end
 					end
 
-					diag_count = utils.diag_count_for_buffer(buffer, diag_count)
+					for severity, count in ipairs(vim.diagnostic.count(buffer)) do
+						diag_count[severity] = diag_count[severity] + count
+					end
 
 					if self.tab_name == nil and win == vim.api.nvim_tabpage_get_win(self.tabpage) then
 						self.tab_name = file_name
