@@ -15,12 +15,17 @@ Scope {
 
             anchors {
                 top: true
+                bottom: true
                 left: true
             }
+            // Force window to extend slightly past screen edge for consistency
+            margins.left: -2
 
             implicitHeight: screen.height
-            implicitWidth: 56
+            implicitWidth: 300 // Expanded width to prevent cropping
             color: "transparent"
+
+            exclusionMode: ExclusionMode.Ignore
 
             mask: Region {
                 Region {
@@ -37,24 +42,33 @@ Scope {
             Backdrop {
                 // enabled: Niri.hasLeftOverflow
                 enabled: !Niri.overviewActive
+                width: 56
+                anchors.left: parent.left
             }
 
             SysTray {
                 id: tray
-                x: parent.width / 2 - width / 2
+                width: 56
+                anchors.left: parent.left
+                anchors.leftMargin: 0
                 y: 10
             }
 
             Workspaces {
                 id: workspaces
-                x: parent.width / 2 - width / 2
+                width: 56
+                anchors.left: parent.left
+                anchors.leftMargin: 0
                 y: parent.height / 2 - height / 2
             }
 
             Time {
                 id: clock
-                x: parent.width / 2 - width / 2
-                y: parent.height - height - 10
+                width: 56
+                anchors.left: parent.left
+                anchors.leftMargin: 0
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 24
             }
         }
     }

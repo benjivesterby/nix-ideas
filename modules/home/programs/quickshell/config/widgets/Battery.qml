@@ -78,7 +78,7 @@ Item {
     }
 
     // Background with Shadow
-    Rectangle {
+    HoverBackdrop {
         id: background
         anchors.top: row.top
         anchors.bottom: row.bottom
@@ -88,20 +88,6 @@ Item {
         anchors.rightMargin: 6
         anchors.left: row.left
         anchors.leftMargin: 6 // Start symmetric (match right margin for 10px padding)
-        
-        color: Colors.light.base // Light theme background
-        radius: 10
-        opacity: 0.0 // Default invisible
-        
-        layer.enabled: true
-        layer.effect: MultiEffect {
-            shadowEnabled: true
-            shadowColor: "black"
-            shadowBlur: 1.0
-            shadowOpacity: 0.5
-            shadowVerticalOffset: 2
-            shadowHorizontalOffset: 2
-        }
     }
 
     Row {
