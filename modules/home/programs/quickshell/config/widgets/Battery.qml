@@ -233,7 +233,7 @@ Item {
     states: [
         State {
             name: "hovered"
-            when: root.hovered
+            when: root.hovered || Niri.overviewActive
             PropertyChanges {
                 target: background
                 opacity: 1.0

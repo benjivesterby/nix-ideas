@@ -36,7 +36,7 @@ Scope {
 
             Backdrop {
                 // enabled: Niri.hasLeftOverflow
-                enabled: true
+                enabled: !Niri.overviewActive
             }
 
             SysTray {
@@ -91,7 +91,7 @@ Scope {
 
             Backdrop {
                 // enabled: Niri.hasRightOverflow
-                enabled: true
+                enabled: !Niri.overviewActive
                 width: 56
                 anchors.right: parent.right
                 

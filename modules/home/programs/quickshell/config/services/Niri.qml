@@ -15,6 +15,7 @@ Singleton {
 
     property bool hasLeftOverflow: false
     property bool hasRightOverflow: false
+    property bool overviewActive: false
 
     Process {
         id: eventStream
@@ -106,6 +107,10 @@ Singleton {
             }
         }
         _computeOverflows();
+    }
+
+    function onNiriOverviewOpenedOrClosed(payload) {
+        overviewActive = payload.is_open;
     }
 
     function focusWorkspace(workspaceId) {
