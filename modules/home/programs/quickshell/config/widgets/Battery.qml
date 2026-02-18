@@ -12,27 +12,7 @@ Item {
     property int capacity: 0
     property string status: "Discharging"
     property bool charging: status == "Charging" || status == "Full" || status == "Not charging"
-
-    property int energyNow: 0
-    property int powerNow: 0
-    property int energyFull: 0
-    
-    // Time Estimate Calculation
-    property string timeRemaining: {
-        if (powerNow <= 0 || status == "Full") return ""; 
-        var hours = 0;
-        if (status == "Discharging") {
-            hours = energyNow / powerNow;
-        } else if (status == "Charging") {
-            hours = (energyFull - energyNow) / powerNow;
-        } else {
-            return "";
-        }
-        
-        var h = Math.floor(hours);
-        var m = Math.floor((hours - h) * 60);
-        return h + "h " + m + "m";
-    }
+    property string timeRemaining: ""
 
     // Dynamic theme switching: Animated colors
     property color animIconColor: Colors.dark.text
@@ -46,51 +26,41 @@ Item {
         repeat: true
         triggeredOnStart: true
         onTriggered: {
-             capacityProcess.running = true
-             statusProcess.running = true
-             energyNowProcess.running = true
-             powerNowProcess.running = true
-             energyFullProcess.running = true
+             upowerProcess.running = true
         }
     }
 
     Process {
-        id: capacityProcess
-        command: ["cat", "/sys/class/power_supply/BAT0/capacity"]
+        id: upowerProcess
+        command: ["upower", "-i", "/org/freedesktop/UPower/devices/battery_BAT0"]
         stdout: SplitParser {
-            onRead: data => root.capacity = parseInt(data.trim())
-        }
-    }
+            onRead: data => {
+                var line = data.trim();
+                if (line.includes(":")) {
+                    var parts = line.split(":");
+                    var key = parts[0].trim();
+                    var value = parts[1].trim();
 
-    Process {
-        id: statusProcess
-        command: ["cat", "/sys/class/power_supply/BAT0/status"]
-        stdout: SplitParser {
-            onRead: data => root.status = data.trim()
-        }
-    }
-    
-    Process {
-        id: energyNowProcess
-        command: ["cat", "/sys/class/power_supply/BAT0/energy_now"]
-        stdout: SplitParser {
-            onRead: data => root.energyNow = parseInt(data.trim())
-        }
-    }
-
-    Process {
-        id: powerNowProcess
-        command: ["cat", "/sys/class/power_supply/BAT0/power_now"]
-        stdout: SplitParser {
-            onRead: data => root.powerNow = parseInt(data.trim())
-        }
-    }
-
-    Process {
-        id: energyFullProcess
-        command: ["cat", "/sys/class/power_supply/BAT0/energy_full"]
-        stdout: SplitParser {
-            onRead: data => root.energyFull = parseInt(data.trim())
+                    if (key === "percentage") {
+                        root.capacity = parseInt(value);
+                    } else if (key === "state") {
+                        // Capitalize first letter for consistency with previous logic
+                        root.status = value.charAt(0).toUpperCase() + value.slice(1);
+                    } else if (key === "time to empty" || key === "time to full") {
+                         var valStr = value.split(" ")[0].replace(",", ".");
+                         var val = parseFloat(valStr);
+                         if (!isNaN(val)) {
+                             var h = Math.floor(val);
+                             var m = Math.floor((val - h) * 60);
+                             root.timeRemaining = h + "h " + m + "m";
+                         } else {
+                             root.timeRemaining = value; // Fallback
+                         }
+                    } else if (root.status === "Full" || root.status === "Unknown") {
+                        root.timeRemaining = "";
+                    }
+                }
+            }
         }
     }
 
@@ -265,17 +235,17 @@ Item {
             from: "*"
             to: "hovered"
             SequentialAnimation {
-                // 1. Background appears and colors switch (symmetric)
+                // 1. Background appears and colors switch (symmetric) - Smoother fade in
                 ParallelAnimation {
-                    NumberAnimation { target: background; property: "opacity"; to: 1.0; duration: 150; easing.type: Easing.OutQuad }
-                    ColorAnimation { target: root; property: "animIconColor"; duration: 150; easing.type: Easing.OutQuad }
-                    ColorAnimation { target: root; property: "animRedColor"; duration: 150; easing.type: Easing.OutQuad }
-                    ColorAnimation { target: root; property: "animChargingColor"; duration: 150; easing.type: Easing.OutQuad }
+                    NumberAnimation { target: background; property: "opacity"; to: 1.0; duration: 300; easing.type: Easing.OutQuad }
+                    ColorAnimation { target: root; property: "animIconColor"; duration: 300; easing.type: Easing.OutQuad }
+                    ColorAnimation { target: root; property: "animRedColor"; duration: 300; easing.type: Easing.OutQuad }
+                    ColorAnimation { target: root; property: "animChargingColor"; duration: 300; easing.type: Easing.OutQuad }
                 }
-                // 2. Expand text and background left margin together
+                // 2. Expand text and background left margin together - Smoother expansion
                 ParallelAnimation {
-                    NumberAnimation { target: textContainer; property: "width"; duration: 200; easing.type: Easing.OutQuad }
-                    NumberAnimation { target: background; property: "anchors.leftMargin"; duration: 200; easing.type: Easing.OutQuad }
+                    NumberAnimation { target: textContainer; property: "width"; duration: 300; easing.type: Easing.OutQuad }
+                    NumberAnimation { target: background; property: "anchors.leftMargin"; duration: 300; easing.type: Easing.OutQuad }
                 }
             }
         },
@@ -285,15 +255,15 @@ Item {
             SequentialAnimation {
                 // 1. Collapse text and restore symmetric margin
                 ParallelAnimation {
-                    NumberAnimation { target: textContainer; property: "width"; to: 0; duration: 200; easing.type: Easing.InQuad }
-                    NumberAnimation { target: background; property: "anchors.leftMargin"; to: 6; duration: 200; easing.type: Easing.InQuad }
+                    NumberAnimation { target: textContainer; property: "width"; to: 0; duration: 250; easing.type: Easing.InQuad }
+                    NumberAnimation { target: background; property: "anchors.leftMargin"; to: 6; duration: 250; easing.type: Easing.InQuad }
                 }
                 // 2. Background disappears and colors revert
                 ParallelAnimation {
-                    NumberAnimation { target: background; property: "opacity"; to: 0.0; duration: 150; easing.type: Easing.InQuad }
-                    ColorAnimation { target: root; property: "animIconColor"; duration: 150; easing.type: Easing.InQuad }
-                    ColorAnimation { target: root; property: "animRedColor"; duration: 150; easing.type: Easing.InQuad }
-                    ColorAnimation { target: root; property: "animChargingColor"; duration: 150; easing.type: Easing.InQuad }
+                    NumberAnimation { target: background; property: "opacity"; to: 0.0; duration: 250; easing.type: Easing.InQuad }
+                    ColorAnimation { target: root; property: "animIconColor"; duration: 250; easing.type: Easing.InQuad }
+                    ColorAnimation { target: root; property: "animRedColor"; duration: 250; easing.type: Easing.InQuad }
+                    ColorAnimation { target: root; property: "animChargingColor"; duration: 250; easing.type: Easing.InQuad }
                 }
             }
         }
