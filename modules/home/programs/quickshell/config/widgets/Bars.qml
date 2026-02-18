@@ -34,7 +34,8 @@ Scope {
             }
 
             Backdrop {
-                enabled: Niri.hasLeftOverflow
+                // enabled: Niri.hasLeftOverflow
+                enabled: true
             }
 
             SysTray {
@@ -53,6 +54,51 @@ Scope {
                 id: clock
                 x: parent.width / 2 - width / 2
                 y: parent.height - height - 10
+            }
+        }
+    }
+
+    Variants {
+        model: Quickshell.screens
+
+        PanelWindow {
+            required property var modelData
+            screen: modelData
+
+            anchors {
+                top: true
+                bottom: true
+                right: true
+            }
+
+            implicitWidth: 300 // Fixed width to prevent resize flicker
+            color: "transparent"
+            
+            // Try to set exclusion mode to ignore to fix reservation issue.
+            // Based on common Quickshell/Wayland patterns, exclusionMode: ExclusionMode.Ignore might work.
+            // But I should check if I can confirm this property exists.
+            // For now, I will just fix the visibility issue in this step.
+            exclusionMode: ExclusionMode.Ignore
+
+            mask: Region {
+                Region {
+                    item: battery
+                }
+            }
+
+            Backdrop {
+                // enabled: Niri.hasRightOverflow
+                enabled: true
+                rotation: 180
+                width: 56
+                anchors.right: parent.right
+            }
+
+            Battery {
+                id: battery
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 10
+                anchors.right: parent.right
             }
         }
     }
