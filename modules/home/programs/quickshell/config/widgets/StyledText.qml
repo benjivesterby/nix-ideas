@@ -8,7 +8,6 @@ Text {
     font.family: "Aporetic Sans Mono"
     font.pixelSize: 20
     color: Colors.palette.text
-    x: parent.width / 2 - width / 2
 
     Behavior on text {
         FadeReduceAnimation {

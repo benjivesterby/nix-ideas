@@ -51,6 +51,7 @@ ColumnLayout {
             StyledText {
                 id: icon
                 text: modelData.icon
+                anchors.centerIn: parent
                 property bool hovered: false
                 color: {
                     if (selected.y == 25 * modelData.id + 1 || parent.hovered)

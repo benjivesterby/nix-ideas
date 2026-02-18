@@ -88,18 +88,46 @@ Item {
                 anchors.left: parent.left
                 anchors.leftMargin: 5
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: 0
+                spacing: 6
                 
                 StyledText {
-                    text: Datetime.date ? Datetime.date.toLocaleDateString(Qt.locale(), "ddd") : ""
+                    text: Datetime.date ? Datetime.date.toLocaleDateString(Qt.locale(), "dddd") : ""
                     color: root.animTextColor
                     font.pixelSize: 14
                     font.bold: true
                 }
                 StyledText {
-                    text: Datetime.date ? Datetime.date.toLocaleDateString(Qt.locale(), "d MMM") : ""
+                    text: Datetime.date ? Datetime.date.toLocaleDateString(Qt.locale(), "d MMMM") : ""
                     color: root.animSubtextColor
-                    font.pixelSize: 12
+                    font.pixelSize: 13
+                }
+
+                Row {
+                    id: weatherRow
+                    spacing: 12
+                    anchors.left: parent.left
+                    
+                    StyledText {
+                        text: Weather.icon
+                        color: root.animTextColor
+                        font.pixelSize: 18
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+
+                    StyledText {
+                        text: Math.round(Weather.temp) + "°"
+                        color: root.animSubtextColor
+                        font.pixelSize: 14
+                        font.bold: true
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+
+                    StyledText {
+                        text: " " + Weather.humidity + "%"
+                        color: root.animOverlayColor
+                        font.pixelSize: 12
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
                 }
             }
         }
