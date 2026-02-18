@@ -22,7 +22,7 @@ Singleton {
         running: true
         stdout: SplitParser {
             onRead: message => {
-                console.log("Niri: ", message);
+                // console.log("Niri: ", message);
 
                 const messageObject = JSON.parse(message);
                 const event = Object.keys(messageObject)[0];

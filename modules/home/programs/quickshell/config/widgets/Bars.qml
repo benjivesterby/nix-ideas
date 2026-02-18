@@ -1,3 +1,4 @@
+import QtQuick
 import Quickshell
 import "../services/"
 
@@ -70,6 +71,8 @@ Scope {
                 bottom: true
                 right: true
             }
+            // Force window to extend slightly past screen edge to cover potential gap
+            margins.right: -2 
 
             implicitWidth: 300 // Fixed width to prevent resize flicker
             color: "transparent"
@@ -89,9 +92,17 @@ Scope {
             Backdrop {
                 // enabled: Niri.hasRightOverflow
                 enabled: true
-                rotation: 180
                 width: 56
                 anchors.right: parent.right
+                
+                // Override gradient to fade from Right (Opaque) to Left (Transparent)
+                // This avoids using rotation: 180 which causes pixel alignment issues
+                gradient: Gradient {
+                    orientation: Gradient.Horizontal
+                    GradientStop { position: 0.0; color: Colors.alpha(Colors.palette.crust, 0.0) }
+                    GradientStop { position: 0.4; color: Colors.alpha(Colors.palette.crust, 0.65) }
+                    GradientStop { position: 1.0; color: Colors.alpha(Colors.palette.crust, 1.0) }
+                }
             }
 
             Battery {

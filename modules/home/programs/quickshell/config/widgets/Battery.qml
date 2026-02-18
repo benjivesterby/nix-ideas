@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Effects
+import QtQuick.Shapes
 import Quickshell
 import Quickshell.Io
 import "../services"
@@ -18,6 +19,7 @@ Item {
     property color animIconColor: Colors.dark.text
     property color animRedColor: Colors.dark.red
     property color animChargingColor: Colors.dark.base
+    property color animBoltColor: Colors.dark.peach // Light peach on dark background
 
     // Timer to update battery status periodically
     Timer {
@@ -154,54 +156,74 @@ Item {
             height: 35 // Approx height of body + tip
             anchors.verticalCenter: parent.verticalCenter
             
-            // Battery Icon Group
-            Item {
-                width: 24
-                height: 35
+            // Layout: Row to hold Icon and Bolt side-by-side
+            Row {
                 anchors.centerIn: parent
+                spacing: 4
 
-                // Battery Tip (Top)
-                Rectangle {
-                    id: tip
-                    width: 6
-                    height: 3
-                    color: (root.capacity < 20 && !root.charging) ? root.animRedColor : root.animIconColor
-                    anchors.top: parent.top
-                    anchors.horizontalCenter: parent.horizontalCenter
-                }
-
-                // Battery Body (Bottom)
-                Rectangle {
-                    id: body
-                    width: 14
-                    height: 26
-                    color: "transparent"
-                    border.color: (root.capacity < 20 && !root.charging) ? root.animRedColor : root.animIconColor
-                    border.width: 2
-                    radius: 2
-                    anchors.top: tip.bottom
-                    anchors.topMargin: 1
-                    anchors.horizontalCenter: parent.horizontalCenter
-
-                    // Battery Fill
+                // Battery Icon Wrapper
+                Item {
+                    width: 14 // Width of body
+                    height: 35 // Total height (tip + body + margin)
+                    
+                    // Battery Tip (Top)
                     Rectangle {
-                        width: parent.width - 6
-                        // Height proportional to capacity. Max height is parent.height - 6 (approx)
-                        height: (parent.height - 6) * (root.capacity / 100)
+                        id: tip
+                        width: 6
+                        height: 3
                         color: (root.capacity < 20 && !root.charging) ? root.animRedColor : root.animIconColor
-                        radius: 1
-                        anchors.bottom: parent.bottom
-                        anchors.bottomMargin: 3
+                        anchors.top: parent.top
                         anchors.horizontalCenter: parent.horizontalCenter
                     }
+
+                    // Battery Body (Bottom)
+                    Rectangle {
+                        id: body
+                        width: 14
+                        height: 26
+                        color: "transparent" // Outline only
+                        border.color: (root.capacity < 20 && !root.charging) ? root.animRedColor : root.animIconColor
+                        border.width: 2
+                        radius: 2
+                        anchors.top: tip.bottom
+                        anchors.topMargin: 1
+                        anchors.horizontalCenter: parent.horizontalCenter
+
+                        // Battery Fill
+                        Rectangle {
+                            id: fillRect
+                            width: parent.width - 6
+                            // Height proportional to capacity. Max height is parent.height - 6 (approx)
+                            height: (parent.height - 6) * (root.capacity / 100)
+                            color: (root.capacity < 20 && !root.charging) ? root.animRedColor : root.animIconColor
+                            radius: 1
+                            anchors.bottom: parent.bottom
+                            anchors.bottomMargin: 3
+                            anchors.horizontalCenter: parent.horizontalCenter
+                        }
+                    }
+                }
+
+                // Charging Bolt (Right Side)
+                Shape {
+                    width: 8
+                    height: 18
+                    visible: root.charging
+                    anchors.verticalCenter: parent.verticalCenter
                     
-                    // Charging symbol
-                    Text {
-                        visible: root.charging
-                        text: "⚡"
-                        font.pixelSize: 10
-                        color: root.animChargingColor
-                        anchors.centerIn: parent
+                    ShapePath {
+                        strokeWidth: 0
+                        fillColor: root.animBoltColor
+                        joinStyle: ShapePath.MiterJoin
+                        capStyle: ShapePath.RoundCap
+                        
+                        startX: 5; startY: 0
+                        PathLine { x: 0; y: 10 }
+                        PathLine { x: 3; y: 10 }
+                        PathLine { x: 1; y: 18 }
+                        PathLine { x: 8; y: 7 }
+                        PathLine { x: 4; y: 7 }
+                        PathLine { x: 5; y: 0 }
                     }
                 }
             }
@@ -226,6 +248,7 @@ Item {
                 animIconColor: Colors.light.text
                 animRedColor: Colors.light.red
                 animChargingColor: Colors.light.base
+                animBoltColor: Colors.light.peach // Dark peach on light background
             }
         }
     ]
@@ -241,6 +264,7 @@ Item {
                     ColorAnimation { target: root; property: "animIconColor"; duration: 300; easing.type: Easing.OutQuad }
                     ColorAnimation { target: root; property: "animRedColor"; duration: 300; easing.type: Easing.OutQuad }
                     ColorAnimation { target: root; property: "animChargingColor"; duration: 300; easing.type: Easing.OutQuad }
+                    ColorAnimation { target: root; property: "animBoltColor"; duration: 300; easing.type: Easing.OutQuad }
                 }
                 // 2. Expand text and background left margin together - Smoother expansion
                 ParallelAnimation {
@@ -264,6 +288,7 @@ Item {
                     ColorAnimation { target: root; property: "animIconColor"; duration: 250; easing.type: Easing.InQuad }
                     ColorAnimation { target: root; property: "animRedColor"; duration: 250; easing.type: Easing.InQuad }
                     ColorAnimation { target: root; property: "animChargingColor"; duration: 250; easing.type: Easing.InQuad }
+                    ColorAnimation { target: root; property: "animBoltColor"; duration: 250; easing.type: Easing.InQuad }
                 }
             }
         }
