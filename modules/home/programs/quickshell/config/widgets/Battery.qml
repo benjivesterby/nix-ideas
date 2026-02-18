@@ -10,61 +10,11 @@ Item {
     implicitWidth: row.width + 20 // Add some padding for the background
     height: 60 // Adjust height as needed to fit standard bar width/height
 
-    property int capacity: 0
-    property string status: "Discharging"
-    property bool charging: status == "Charging" || status == "Full" || status == "Not charging"
-    property string timeRemaining: ""
-
     // Dynamic theme switching: Animated colors
     property color animIconColor: Colors.dark.text
     property color animRedColor: Colors.dark.red
     property color animChargingColor: Colors.dark.base
     property color animBoltColor: Colors.dark.peach // Light peach on dark background
-
-    // Timer to update battery status periodically
-    Timer {
-        interval: 5000 // 5 seconds
-        running: true
-        repeat: true
-        triggeredOnStart: true
-        onTriggered: {
-             upowerProcess.running = true
-        }
-    }
-
-    Process {
-        id: upowerProcess
-        command: ["upower", "-i", "/org/freedesktop/UPower/devices/battery_BAT0"]
-        stdout: SplitParser {
-            onRead: data => {
-                var line = data.trim();
-                if (line.includes(":")) {
-                    var parts = line.split(":");
-                    var key = parts[0].trim();
-                    var value = parts[1].trim();
-
-                    if (key === "percentage") {
-                        root.capacity = parseInt(value);
-                    } else if (key === "state") {
-                        // Capitalize first letter for consistency with previous logic
-                        root.status = value.charAt(0).toUpperCase() + value.slice(1);
-                    } else if (key === "time to empty" || key === "time to full") {
-                         var valStr = value.split(" ")[0].replace(",", ".");
-                         var val = parseFloat(valStr);
-                         if (!isNaN(val)) {
-                             var h = Math.floor(val);
-                             var m = Math.floor((val - h) * 60);
-                             root.timeRemaining = h + "h " + m + "m";
-                         } else {
-                             root.timeRemaining = value; // Fallback
-                         }
-                    } else if (root.status === "Full" || root.status === "Unknown") {
-                        root.timeRemaining = "";
-                    }
-                }
-            }
-        }
-    }
 
     // Hover state handling
     property bool hovered: false
@@ -77,7 +27,7 @@ Item {
         onExited: root.hovered = false
     }
 
-    // Background with Shadow
+    // Shared backdrop component
     HoverBackdrop {
         id: background
         anchors.top: row.top
@@ -118,7 +68,7 @@ Item {
                 
                 StyledText {
                     id: percentageText
-                    text: root.capacity + "%"
+                    text: Math.round(Power.percentage) + "%"
                     font.pixelSize: 20
                     color: Colors.light.text // Light theme text
                     anchors.right: parent.right
@@ -126,11 +76,11 @@ Item {
                 
                 StyledText {
                     id: timeText
-                    text: root.timeRemaining
+                    text: Power.timeEstimate
                     font.pixelSize: 12
                     color: Colors.light.subtext0
                     anchors.right: parent.right
-                    visible: root.timeRemaining !== ""
+                    visible: Power.timeEstimate !== ""
                 }
             }
         }
@@ -157,7 +107,7 @@ Item {
                         id: tip
                         width: 6
                         height: 3
-                        color: (root.capacity < 20 && !root.charging) ? root.animRedColor : root.animIconColor
+                        color: (Power.percentage < 20 && !Power.isCharging) ? root.animRedColor : root.animIconColor
                         anchors.top: parent.top
                         anchors.horizontalCenter: parent.horizontalCenter
                     }
@@ -168,7 +118,7 @@ Item {
                         width: 14
                         height: 26
                         color: "transparent" // Outline only
-                        border.color: (root.capacity < 20 && !root.charging) ? root.animRedColor : root.animIconColor
+                        border.color: (Power.percentage < 20 && !Power.isCharging) ? root.animRedColor : root.animIconColor
                         border.width: 2
                         radius: 2
                         anchors.top: tip.bottom
@@ -180,8 +130,8 @@ Item {
                             id: fillRect
                             width: parent.width - 6
                             // Height proportional to capacity. Max height is parent.height - 6 (approx)
-                            height: (parent.height - 6) * (root.capacity / 100)
-                            color: (root.capacity < 20 && !root.charging) ? root.animRedColor : root.animIconColor
+                            height: (parent.height - 6) * (Power.percentage / 100)
+                            color: (Power.percentage < 20 && !Power.isCharging) ? root.animRedColor : root.animIconColor
                             radius: 1
                             anchors.bottom: parent.bottom
                             anchors.bottomMargin: 3
@@ -194,7 +144,7 @@ Item {
                 Shape {
                     width: 8
                     height: 18
-                    visible: root.charging
+                    visible: Power.isCharging
                     anchors.verticalCenter: parent.verticalCenter
                     
                     ShapePath {
