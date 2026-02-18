@@ -139,6 +139,9 @@ Item {
         
         anchors.verticalCenter: parent.verticalCenter
         spacing: 0 // Spacing handled by text container margin
+        
+        // Stabilize height to prevent jump during animation
+        height: Math.max(textContainer.height, iconContainer.height)
 
         // Percentage and Time Text Container (Clipped for animation)
         Item {
@@ -176,6 +179,7 @@ Item {
 
         // Battery Icon Container (Fixed width to center icon in the "bar" area)
         Item {
+            id: iconContainer
             width: 56 // Standard bar width
             height: 35 // Approx height of body + tip
             anchors.verticalCenter: parent.verticalCenter
