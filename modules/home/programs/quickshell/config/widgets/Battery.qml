@@ -140,26 +140,37 @@ Item {
                     }
                 }
 
-                // Charging Bolt (Right Side)
-                Shape {
-                    width: 8
+                // Charging Bolt (Right Side) - Animated arrival
+                Item {
+                    id: boltContainer
+                    width: Power.isCharging ? 8 : 0
                     height: 18
-                    visible: Power.isCharging
+                    opacity: Power.isCharging ? 1.0 : 0.0
+                    clip: true
                     anchors.verticalCenter: parent.verticalCenter
                     
-                    ShapePath {
-                        strokeWidth: 0
-                        fillColor: root.animBoltColor
-                        joinStyle: ShapePath.MiterJoin
-                        capStyle: ShapePath.RoundCap
+                    Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutQuad } }
+                    Behavior on opacity { NumberAnimation { duration: 300; easing.type: Easing.OutQuad } }
+
+                    Shape {
+                        anchors.centerIn: parent
+                        width: 8
+                        height: 18
                         
-                        startX: 5; startY: 0
-                        PathLine { x: 0; y: 10 }
-                        PathLine { x: 3; y: 10 }
-                        PathLine { x: 1; y: 18 }
-                        PathLine { x: 8; y: 7 }
-                        PathLine { x: 4; y: 7 }
-                        PathLine { x: 5; y: 0 }
+                        ShapePath {
+                            strokeWidth: 0
+                            fillColor: root.animBoltColor
+                            joinStyle: ShapePath.MiterJoin
+                            capStyle: ShapePath.RoundCap
+                            
+                            startX: 5; startY: 0
+                            PathLine { x: 0; y: 10 }
+                            PathLine { x: 3; y: 10 }
+                            PathLine { x: 1; y: 18 }
+                            PathLine { x: 8; y: 7 }
+                            PathLine { x: 4; y: 7 }
+                            PathLine { x: 5; y: 0 }
+                        }
                     }
                 }
             }

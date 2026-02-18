@@ -39,6 +39,7 @@ Item {
     Row {
         id: mainRow
         anchors.left: parent.left
+        height: Math.max(60, dateColumn.implicitHeight)
         anchors.verticalCenter: parent.verticalCenter
         spacing: 0
         
