@@ -3,6 +3,7 @@ import QtQuick.Effects
 import QtQuick.Shapes
 import Quickshell
 import Quickshell.Io
+import Quickshell.Services.UPower
 import "../services"
 
 Item {
@@ -18,6 +19,31 @@ Item {
 
     // Hover state handling
     property bool hovered: false
+
+    // UPower integration: Mapping built-in service to UI variables
+    readonly property real batteryPercentage: (UPower.displayDevice?.percentage ?? 0) * 100
+    readonly property bool isCharging: {
+        const state = UPower.displayDevice?.state;
+        return state === UPowerDeviceState.Charging || state === UPowerDeviceState.FullyCharged;
+    }
+    
+    readonly property string timeEstimate: {
+        const device = UPower.displayDevice;
+        if (!device) return "";
+        if (device.state === UPowerDeviceState.FullyCharged) return "Full";
+        
+        // Use timeToFull if charging, otherwise fallback to timeToEmpty for discharge/pending
+        let seconds = (device.state === UPowerDeviceState.Charging) ? device.timeToFull : device.timeToEmpty;
+        
+        if (seconds <= 0) return "";
+        return durationToText(seconds);
+    }
+
+    function durationToText(seconds) {
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        return h + "h " + m + "m";
+    }
 
     MouseArea {
         id: mouseArea
@@ -68,7 +94,7 @@ Item {
                 
                 StyledText {
                     id: percentageText
-                    text: Math.round(Power.percentage) + "%"
+                    text: Math.round(root.batteryPercentage) + "%"
                     font.pixelSize: 20
                     color: Colors.light.text // Light theme text
                     anchors.right: parent.right
@@ -76,11 +102,11 @@ Item {
                 
                 StyledText {
                     id: timeText
-                    text: Power.timeEstimate
+                    text: root.timeEstimate
                     font.pixelSize: 12
                     color: Colors.light.subtext0
                     anchors.right: parent.right
-                    visible: Power.timeEstimate !== ""
+                    visible: root.timeEstimate !== ""
                 }
             }
         }
@@ -107,7 +133,7 @@ Item {
                         id: tip
                         width: 6
                         height: 3
-                        color: (Power.percentage < 20 && !Power.isCharging) ? root.animRedColor : root.animIconColor
+                        color: (root.batteryPercentage < 20 && !root.isCharging) ? root.animRedColor : root.animIconColor
                         anchors.top: parent.top
                         anchors.horizontalCenter: parent.horizontalCenter
                     }
@@ -118,7 +144,7 @@ Item {
                         width: 14
                         height: 26
                         color: "transparent" // Outline only
-                        border.color: (Power.percentage < 20 && !Power.isCharging) ? root.animRedColor : root.animIconColor
+                        border.color: (root.batteryPercentage < 20 && !root.isCharging) ? root.animRedColor : root.animIconColor
                         border.width: 2
                         radius: 2
                         anchors.top: tip.bottom
@@ -130,8 +156,8 @@ Item {
                             id: fillRect
                             width: parent.width - 6
                             // Height proportional to capacity. Max height is parent.height - 6 (approx)
-                            height: (parent.height - 6) * (Power.percentage / 100)
-                            color: (Power.percentage < 20 && !Power.isCharging) ? root.animRedColor : root.animIconColor
+                            height: (parent.height - 6) * (root.batteryPercentage / 100)
+                            color: (root.batteryPercentage < 20 && !root.isCharging) ? root.animRedColor : root.animIconColor
                             radius: 1
                             anchors.bottom: parent.bottom
                             anchors.bottomMargin: 3
@@ -143,9 +169,9 @@ Item {
                 // Charging Bolt (Right Side) - Animated arrival
                 Item {
                     id: boltContainer
-                    width: Power.isCharging ? 8 : 0
+                    width: root.isCharging ? 8 : 0
                     height: 18
-                    opacity: Power.isCharging ? 1.0 : 0.0
+                    opacity: root.isCharging ? 1.0 : 0.0
                     clip: true
                     anchors.verticalCenter: parent.verticalCenter
                     
