@@ -63,7 +63,7 @@
     disko.inputs.nixpkgs.follows = "nixpkgs";
 
     # Determinate version of nix
-    determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
+    determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/3.15.2";
     determinate.inputs.nixpkgs.follows = "nixpkgs";
 
     nh.url = "github:viperML/nh";
@@ -83,6 +83,8 @@
 
     stasis.url = "github:saltnpepper97/stasis";
     stasis.inputs.nixpkgs.follows = "nixpkgs";
+
+    nixos-hardware.url = "github:NixOS/nixos-hardware/master";
   };
 
   outputs =

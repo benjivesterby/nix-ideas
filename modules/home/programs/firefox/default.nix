@@ -10,8 +10,7 @@ let
   package = pkgs.firefox-beta.override {
     nativeMessagingHosts = [
       pkgs.tridactyl-native
-    ]
-    ++ lib.optional pkgs.stdenv.isLinux pkgs.vdhcoapp;
+    ];
   };
 in
 {

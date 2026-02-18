@@ -20,6 +20,11 @@ in
     # inputs.niri.homeModules.config
   ];
 
+  options.my.roles.graphical.niriExtraConfig = lib.mkOption {
+    type = lib.types.str;
+    default = "";
+  };
+
   config = lib.mkIf (config.my.roles.graphical.enable && !pkgs.stdenv.isDarwin) {
     programs.niri = {
       package = nixosConfig.programs.niri.package or perSystem.self.niri;
@@ -29,6 +34,8 @@ in
         else
           # kdl
           ''
+            ${config.my.roles.graphical.niriExtraConfig}
+
             screenshot-path "~/Pictures/Screenshots/%Y-%m-%dT%H:%M:%S.png"
             hotkey-overlay
             prefer-no-csd
@@ -41,18 +48,20 @@ in
                 trackball { accel-speed 0.000000; }
                 focus-follows-mouse max-scroll-amount="0%"
 
+                touchpad {
+                  tap
+                  natural-scroll
+                  drag true
+                  drag-lock
+                  click-method "clickfinger"
+                }
+
                 keyboard {
                     xkb { layout "fr"; }
                     repeat-delay 600
                     repeat-rate 25
                     track-layout "global"
                 }
-            }
-
-            // TODO: proper nix options for this
-            output "${config.my.roles.graphical.monitors.primary.name}" {
-              mode "${config.my.roles.graphical.monitors.primary.resolution}"
-              variable-refresh-rate
             }
 
             layout {
@@ -105,8 +114,6 @@ in
 
             environment {
                 "ELECTRON_OZONE_PLATFORM_HINT" "auto"
-                "GBM_BACKEND" "nvidia-drm"
-                "LIBVA_DRIVER_NAME" "nvidia"
                 "NIXOS_OZONE_WL" "1"
             }
 
@@ -131,12 +138,12 @@ in
                 Mod+Page_Up         { focus-workspace-up; }
                 Mod+Shift+Down      { move-window-down-or-to-workspace-down; }
                 Mod+Shift+Up        { move-window-up-or-to-workspace-up; }
-                Mod+Shift+Right     { consume-or-expel-window-right; }
-                Mod+Shift+Left      { consume-or-expel-window-left; }
+                Mod+Shift+Left      { move-column-left-or-to-monitor-left; }
+                Mod+Shift+Right     { move-column-right-or-to-monitor-right; }
+                Mod+Ctrl+Right      { consume-or-expel-window-right; }
+                Mod+Ctrl+Left       { consume-or-expel-window-left; }
                 Mod+Shift+Page_Down { move-workspace-down; }
                 Mod+Shift+Page_Up   { move-workspace-up; }
-                Mod+Ctrl+Left       { move-column-left; }
-                Mod+Ctrl+Right      { move-column-right; }
 
                 Mod+T               { toggle-column-tabbed-display; }
                 Mod+Shift+F         { toggle-window-floating; }

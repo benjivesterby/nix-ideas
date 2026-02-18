@@ -22,6 +22,16 @@
       # package = config.boot.kernelPackages.nvidiaPackages.beta;
     };
 
+    environment.sessionVariables = {
+      LIBVA_DRIVER_NAME = "nvidia";
+      GBM_BACKEND = "nvidia-drm";
+      __GLX_VENDOR_LIBRARY_NAME = "nvidia";
+
+      # TODO: needed with the current nvidia drivers, remove when fixed
+      GSK_RENDERER = "ngl";
+      NVD_BACKEND = "direct";
+    };
+
     # systemd.services =
     #   let
     #     override.environment.SYSTEMD_SLEEP_FREEZE_USER_SESSIONS = "true";
