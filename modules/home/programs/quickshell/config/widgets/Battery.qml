@@ -11,8 +11,29 @@ Item {
 
     property int capacity: 0
     property string status: "Discharging"
-    property bool charging: status == "Charging" || status == "Full" || status == "Not charging" // "Not charging" usually means plugged in but full or threshold
+    property bool charging: status == "Charging" || status == "Full" || status == "Not charging"
+
+    property int energyNow: 0
+    property int powerNow: 0
+    property int energyFull: 0
     
+    // Time Estimate Calculation
+    property string timeRemaining: {
+        if (powerNow <= 0 || status == "Full") return ""; 
+        var hours = 0;
+        if (status == "Discharging") {
+            hours = energyNow / powerNow;
+        } else if (status == "Charging") {
+            hours = (energyFull - energyNow) / powerNow;
+        } else {
+            return "";
+        }
+        
+        var h = Math.floor(hours);
+        var m = Math.floor((hours - h) * 60);
+        return h + "h " + m + "m";
+    }
+
     // Dynamic theme switching: Animated colors
     property color animIconColor: Colors.dark.text
     property color animRedColor: Colors.dark.red
@@ -27,6 +48,9 @@ Item {
         onTriggered: {
              capacityProcess.running = true
              statusProcess.running = true
+             energyNowProcess.running = true
+             powerNowProcess.running = true
+             energyFullProcess.running = true
         }
     }
 
@@ -43,6 +67,30 @@ Item {
         command: ["cat", "/sys/class/power_supply/BAT0/status"]
         stdout: SplitParser {
             onRead: data => root.status = data.trim()
+        }
+    }
+    
+    Process {
+        id: energyNowProcess
+        command: ["cat", "/sys/class/power_supply/BAT0/energy_now"]
+        stdout: SplitParser {
+            onRead: data => root.energyNow = parseInt(data.trim())
+        }
+    }
+
+    Process {
+        id: powerNowProcess
+        command: ["cat", "/sys/class/power_supply/BAT0/power_now"]
+        stdout: SplitParser {
+            onRead: data => root.powerNow = parseInt(data.trim())
+        }
+    }
+
+    Process {
+        id: energyFullProcess
+        command: ["cat", "/sys/class/power_supply/BAT0/energy_full"]
+        stdout: SplitParser {
+            onRead: data => root.energyFull = parseInt(data.trim())
         }
     }
 
@@ -92,22 +140,37 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         spacing: 0 // Spacing handled by text container margin
 
-        // Percentage Text Container (Clipped for animation)
+        // Percentage and Time Text Container (Clipped for animation)
         Item {
             id: textContainer
-            height: percentageText.implicitHeight
+            height: textColumn.implicitHeight
             width: 0 // Start closed
             clip: true
             anchors.verticalCenter: parent.verticalCenter
             
-            StyledText {
-                id: percentageText
-                text: root.capacity + "%"
-                font.pixelSize: 20
-                color: Colors.light.text // Light theme text
+            Column {
+                id: textColumn
                 anchors.right: parent.right
                 anchors.rightMargin: 4 // Reduced padding to bring closer to icon
                 anchors.verticalCenter: parent.verticalCenter
+                spacing: 0
+                
+                StyledText {
+                    id: percentageText
+                    text: root.capacity + "%"
+                    font.pixelSize: 20
+                    color: Colors.light.text // Light theme text
+                    anchors.right: parent.right
+                }
+                
+                StyledText {
+                    id: timeText
+                    text: root.timeRemaining
+                    font.pixelSize: 12
+                    color: Colors.light.subtext0
+                    anchors.right: parent.right
+                    visible: root.timeRemaining !== ""
+                }
             }
         }
 
@@ -115,6 +178,7 @@ Item {
         Item {
             width: 56 // Standard bar width
             height: 35 // Approx height of body + tip
+            anchors.verticalCenter: parent.verticalCenter
             
             // Battery Icon Group
             Item {
@@ -181,7 +245,7 @@ Item {
             }
             PropertyChanges {
                 target: textContainer
-                width: percentageText.implicitWidth + 15 // Expand for text + padding
+                width: textColumn.implicitWidth + 15 // Expand for text + padding
             }
             PropertyChanges {
                 target: root
