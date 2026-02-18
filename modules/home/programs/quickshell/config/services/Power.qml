@@ -61,7 +61,7 @@ Singleton {
                         root.timeEstimate = value;
                     }
                 } else if (root.statusText === "fully-charged") {
-                    root.timeEstimate = "";
+                    root.timeEstimate = "Full";
                 }
             }
         }

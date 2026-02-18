@@ -9,7 +9,7 @@ Singleton {
 
     property real temp: 0
     property int humidity: 0
-    property string icon: ""
+    property string icon: ""
     property string condition: "Loading..."
     property int weatherCode: 0
 
