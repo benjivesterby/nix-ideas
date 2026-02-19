@@ -8,7 +8,7 @@ import "../services"
 
 Item {
     id: root
-    implicitWidth: row.width + 20 // Add some padding for the background
+    implicitWidth: row.width // Match visible width exactly to prevent overlap
     height: 60 // Adjust height as needed to fit standard bar width/height
 
     // Dynamic theme switching: Animated colors
@@ -25,6 +25,14 @@ Item {
     readonly property bool isCharging: {
         const state = UPower.displayDevice?.state;
         return state === UPowerDeviceState.Charging || state === UPowerDeviceState.FullyCharged;
+    }
+
+    onIsChargingChanged: {
+        if (isCharging) {
+            PowerProfiles.profile = PowerProfile.Performance;
+        } else {
+            PowerProfiles.profile = PowerProfile.Balanced;
+        }
     }
     
     readonly property string timeEstimate: {
@@ -71,7 +79,7 @@ Item {
 
     MouseArea {
         id: mouseArea
-        anchors.fill: parent
+        anchors.fill: background // Constrain hover area to the visual backdrop
         hoverEnabled: true
         onEntered: root.hovered = true
         onExited: root.hovered = false
