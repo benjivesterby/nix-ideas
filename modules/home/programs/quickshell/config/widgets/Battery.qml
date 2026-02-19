@@ -45,6 +45,30 @@ Item {
         return h + "h " + m + "m";
     }
 
+    readonly property string powerProfileText: {
+        const p = PowerProfiles.profile;
+        if (p === PowerProfile.PowerSaver) return "Power Saver";
+        if (p === PowerProfile.Balanced) return "Balanced";
+        if (p === PowerProfile.Performance) return "Performance";
+        return "";
+    }
+
+    readonly property int profileStepIndex: {
+        const p = PowerProfiles.profile;
+        if (p === PowerProfile.PowerSaver) return 0;
+        if (p === PowerProfile.Balanced) return 1;
+        if (p === PowerProfile.Performance) return 2;
+        return 1;
+    }
+
+    readonly property color activeProfileColor: {
+        const p = PowerProfiles.profile;
+        if (p === PowerProfile.PowerSaver) return Colors.light.green;
+        if (p === PowerProfile.Balanced) return Colors.light.blue;
+        if (p === PowerProfile.Performance) return Colors.light.red;
+        return Colors.light.subtext0;
+    }
+
     MouseArea {
         id: mouseArea
         anchors.fill: parent
@@ -77,36 +101,171 @@ Item {
         // Stabilize height to prevent jump during animation
         height: Math.max(textContainer.height, iconContainer.height)
 
-        // Percentage and Time Text Container (Clipped for animation)
+        // Percentage, Time, and Profile Selector Container
         Item {
             id: textContainer
-            height: textColumn.implicitHeight
+            height: Math.max(textColumn.implicitHeight, profileSelector.implicitHeight)
             width: 0 // Start closed
             clip: true
             anchors.verticalCenter: parent.verticalCenter
             
-            Column {
-                id: textColumn
+            Row {
+                id: expandedContent
                 anchors.right: parent.right
-                anchors.rightMargin: 4 // Reduced padding to bring closer to icon
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: 0
+                spacing: 12
                 
-                StyledText {
-                    id: percentageText
-                    text: Math.round(root.batteryPercentage) + "%"
-                    font.pixelSize: 20
-                    color: Colors.light.text // Light theme text
-                    anchors.right: parent.right
+                // Power Profile Slider Selector
+                Column {
+                    id: profileSelector
+                    spacing: 4
+                    anchors.verticalCenter: parent.verticalCenter
+                    
+                    StyledText {
+                        text: root.powerProfileText + " Mode"
+                        font.pixelSize: 10
+                        color: Colors.light.subtext1
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+
+                    Item {
+                        width: 90
+                        height: 26
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        
+                        // Slider Track
+                        Rectangle {
+                            width: parent.width - 16
+                            height: 2
+                            color: Colors.light.subtext1
+                            opacity: 0.2
+                            radius: 1
+                            anchors.verticalCenter: parent.verticalCenter
+                            anchors.verticalCenterOffset: 8 // Moved down from center
+                            anchors.horizontalCenter: parent.horizontalCenter
+                        }
+
+                        // Step Markers (Static Dots)
+                        Repeater {
+                            model: 3
+                            Rectangle {
+                                width: 4
+                                height: 4
+                                radius: 2
+                                color: Colors.light.subtext1
+                                opacity: 0.2
+                                anchors.verticalCenter: parent.verticalCenter
+                                anchors.verticalCenterOffset: 8 // Match track offset
+                                x: 8 + (index * (parent.width - 16) / 2) - width/2
+                            }
+                        }
+
+                        // Moving Cursor
+                        Rectangle {
+                            id: sliderCursor
+                            width: 8
+                            height: 8
+                            radius: 4
+                            color: root.activeProfileColor
+                            anchors.verticalCenter: parent.verticalCenter
+                            anchors.verticalCenterOffset: 8 // Match track offset
+                            x: 8 + (root.profileStepIndex * (parent.width - 16) / 2) - width/2
+                            
+                            Behavior on x { NumberAnimation { duration: 300; easing.type: Easing.OutBack } }
+                            Behavior on color { ColorAnimation { duration: 300 } }
+                        }
+
+
+                        // Profile Steps (Leaf, Scales, Bolt)
+                        Item {
+                            id: step0
+                            width: 30
+                            height: parent.height
+                            anchors.verticalCenter: parent.verticalCenter
+                            x: 8 - width/2 // Center on first step (x=8)
+                            
+                            StyledText {
+                                text: "" // nf-fa-leaf (uf06c)
+                                font.pixelSize: 14
+                                anchors.centerIn: parent
+                                anchors.verticalCenterOffset: -4
+                                color: root.profileStepIndex === 0 ? root.activeProfileColor : Colors.light.subtext0
+                                opacity: root.profileStepIndex === 0 ? 1.0 : 0.4
+                                Behavior on color { ColorAnimation { duration: 300 } }
+                            }
+                            MouseArea {
+                                anchors.fill: parent
+                                onClicked: PowerProfiles.profile = PowerProfile.PowerSaver
+                            }
+                        }
+
+                        Item {
+                            id: step1
+                            width: 30
+                            height: parent.height
+                            anchors.verticalCenter: parent.verticalCenter
+                            x: 8 + (parent.width - 16)/2 - width/2 // Center on middle step
+                            
+                            StyledText {
+                                text: "⚖"
+                                font.pixelSize: 14 // Match leaf size
+                                anchors.centerIn: parent
+                                anchors.verticalCenterOffset: -4
+                                color: root.profileStepIndex === 1 ? root.activeProfileColor : Colors.light.subtext0
+                                opacity: root.profileStepIndex === 1 ? 1.0 : 0.4
+                                Behavior on color { ColorAnimation { duration: 300 } }
+                            }
+                            MouseArea {
+                                anchors.fill: parent
+                                onClicked: PowerProfiles.profile = PowerProfile.Balanced
+                            }
+                        }
+
+                        Item {
+                            id: step2
+                            width: 30
+                            height: parent.height
+                            anchors.verticalCenter: parent.verticalCenter
+                            x: 8 + (parent.width - 16) - width/2 // Center on last step
+                            
+                            StyledText {
+                                text: ""
+                                font.pixelSize: 14
+                                anchors.centerIn: parent
+                                anchors.verticalCenterOffset: -4
+                                color: root.profileStepIndex === 2 ? root.activeProfileColor : Colors.light.subtext0
+                                opacity: root.profileStepIndex === 2 ? 1.0 : 0.4
+                                Behavior on color { ColorAnimation { duration: 300 } }
+                            }
+                            MouseArea {
+                                anchors.fill: parent
+                                onClicked: PowerProfiles.profile = PowerProfile.Performance
+                            }
+                        }
+                    }
                 }
-                
-                StyledText {
-                    id: timeText
-                    text: root.timeEstimate
-                    font.pixelSize: 12
-                    color: Colors.light.subtext0
-                    anchors.right: parent.right
-                    visible: root.timeEstimate !== ""
+
+                Column {
+                    id: textColumn
+                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: 0
+                    
+                    StyledText {
+                        id: percentageText
+                        text: Math.round(root.batteryPercentage) + "%"
+                        font.pixelSize: 20
+                        color: Colors.light.text // Light theme text
+                        anchors.right: parent.right
+                    }
+                    
+                    StyledText {
+                        id: timeText
+                        text: root.timeEstimate
+                        font.pixelSize: 12
+                        color: Colors.light.subtext1
+                        anchors.right: parent.right
+                        visible: root.timeEstimate !== ""
+                    }
                 }
             }
         }
@@ -214,7 +373,7 @@ Item {
             }
             PropertyChanges {
                 target: textContainer
-                width: textColumn.implicitWidth + 15 // Expand for text + padding
+                width: expandedContent.implicitWidth + 15 // Expand for buttons + text + padding
             }
             PropertyChanges {
                 target: root
