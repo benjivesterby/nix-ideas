@@ -15,7 +15,9 @@ Item {
     property color animIconColor: Colors.dark.text
     property color animRedColor: Colors.dark.red
     property color animChargingColor: Colors.dark.base
-    property color animBoltColor: Colors.dark.peach // Light peach on dark background
+    // animBoltColor is no longer used for a separate icon, but we keep it if needed or remove it.
+    // The user requested monochrome inversion, so we'll strictly use iconColor and chargingColor (background).
+
 
     // Hover state handling
     property bool hovered: false
@@ -318,51 +320,74 @@ Item {
                         anchors.topMargin: 1
                         anchors.horizontalCenter: parent.horizontalCenter
 
+                        Shape {
+                            anchors.centerIn: parent
+                            width: 8
+                            height: 18
+                            // Remove visible binding to allow fade-out
+                            opacity: root.isCharging ? 1.0 : 0.0
+                            Behavior on opacity { NumberAnimation { duration: 300 } }
+                            
+                            ShapePath {
+                                strokeWidth: 0
+                                fillColor: root.animIconColor // Foreground color
+                                joinStyle: ShapePath.MiterJoin
+                                capStyle: ShapePath.RoundCap
+                                
+                                startX: 5; startY: 0
+                                PathLine { x: 0; y: 10 }
+                                PathLine { x: 3; y: 10 }
+                                PathLine { x: 1; y: 18 }
+                                PathLine { x: 8; y: 7 }
+                                PathLine { x: 4; y: 7 }
+                                PathLine { x: 5; y: 0 }
+                            }
+                        }
+
                         // Battery Fill
                         Rectangle {
                             id: fillRect
                             width: parent.width - 6
                             // Height proportional to capacity. Max height is parent.height - 6 (approx)
                             height: (parent.height - 6) * (root.batteryPercentage / 100)
+                            clip: true // Clip the "Filled" bolt to the fill level
+
                             color: (root.batteryPercentage < 20 && !root.isCharging) ? root.animRedColor : root.animIconColor
                             radius: 1
                             anchors.bottom: parent.bottom
                             anchors.bottomMargin: 3
                             anchors.horizontalCenter: parent.horizontalCenter
-                        }
-                    }
-                }
 
-                // Charging Bolt (Right Side) - Animated arrival
-                Item {
-                    id: boltContainer
-                    width: root.isCharging ? 8 : 0
-                    height: 18
-                    opacity: root.isCharging ? 1.0 : 0.0
-                    clip: true
-                    anchors.verticalCenter: parent.verticalCenter
-                    
-                    Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutQuad } }
-                    Behavior on opacity { NumberAnimation { duration: 300; easing.type: Easing.OutQuad } }
-
-                    Shape {
-                        anchors.centerIn: parent
-                        width: 8
-                        height: 18
-                        
-                        ShapePath {
-                            strokeWidth: 0
-                            fillColor: root.animBoltColor
-                            joinStyle: ShapePath.MiterJoin
-                            capStyle: ShapePath.RoundCap
-                            
-                            startX: 5; startY: 0
-                            PathLine { x: 0; y: 10 }
-                            PathLine { x: 3; y: 10 }
-                            PathLine { x: 1; y: 18 }
-                            PathLine { x: 8; y: 7 }
-                            PathLine { x: 4; y: 7 }
-                            PathLine { x: 5; y: 0 }
+                            // Bolt 2: The "Filled" part (Background Color). Visible inside the fill.
+                            // We calculate Y manually because we want it fixed relative to the body (grandparent),
+                            // but we are inside fillRect (parent) which moves/resizes.
+                            // Body height 26, Bolt height 18. Centered Y in body = 4.
+                            // FillRect bottom is at 23 (height-3). Top is at 23 - height.
+                            // Relative Y = 4 - (23 - height) = height - 19.
+                            Shape {
+                                y: parent.height - 19
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                width: 8
+                                height: 18
+                                // Remove visible binding to allow fade-out
+                                opacity: root.isCharging ? 1.0 : 0.0
+                                Behavior on opacity { NumberAnimation { duration: 300 } }
+                                
+                                ShapePath {
+                                    strokeWidth: 0
+                                    fillColor: root.animChargingColor // Background color (inverted)
+                                    joinStyle: ShapePath.MiterJoin
+                                    capStyle: ShapePath.RoundCap
+                                    
+                                    startX: 5; startY: 0
+                                    PathLine { x: 0; y: 10 }
+                                    PathLine { x: 3; y: 10 }
+                                    PathLine { x: 1; y: 18 }
+                                    PathLine { x: 8; y: 7 }
+                                    PathLine { x: 4; y: 7 }
+                                    PathLine { x: 5; y: 0 }
+                                }
+                            }
                         }
                     }
                 }
@@ -388,7 +413,6 @@ Item {
                 animIconColor: Colors.light.text
                 animRedColor: Colors.light.red
                 animChargingColor: Colors.light.base
-                animBoltColor: Colors.light.peach // Dark peach on light background
             }
         }
     ]
@@ -404,7 +428,6 @@ Item {
                     ColorAnimation { target: root; property: "animIconColor"; duration: 300; easing.type: Easing.OutQuad }
                     ColorAnimation { target: root; property: "animRedColor"; duration: 300; easing.type: Easing.OutQuad }
                     ColorAnimation { target: root; property: "animChargingColor"; duration: 300; easing.type: Easing.OutQuad }
-                    ColorAnimation { target: root; property: "animBoltColor"; duration: 300; easing.type: Easing.OutQuad }
                 }
                 // 2. Expand text and background left margin together - Smoother expansion
                 ParallelAnimation {
@@ -428,7 +451,6 @@ Item {
                     ColorAnimation { target: root; property: "animIconColor"; duration: 250; easing.type: Easing.InQuad }
                     ColorAnimation { target: root; property: "animRedColor"; duration: 250; easing.type: Easing.InQuad }
                     ColorAnimation { target: root; property: "animChargingColor"; duration: 250; easing.type: Easing.InQuad }
-                    ColorAnimation { target: root; property: "animBoltColor"; duration: 250; easing.type: Easing.InQuad }
                 }
             }
         }

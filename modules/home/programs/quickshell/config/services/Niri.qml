@@ -92,7 +92,9 @@ Singleton {
 
     function onNiriWindowFocusChanged(payload) {
         if (payload.id && payload.id in windows) {
-            focusedWindow.is_focused = false;
+            if (focusedWindow && focusedWindow.is_focused !== undefined) {
+                 focusedWindow.is_focused = false;
+            }
             windows[payload.id].is_focused = true;
             focusedWindow = windows[payload.id];
         }
@@ -157,7 +159,7 @@ Singleton {
         var wins = getWorkspaceWindows(focusedWorkspace?.id);
         if (wins) {
             for (const win of Object.values(wins)) {
-                if (win.layout.tile_pos_in_workspace_view) {
+                if (win && win.layout && win.layout.tile_pos_in_workspace_view) {
                     if (win.layout.tile_pos_in_workspace_view[0] < 56) {
                         newHasLeftOverflow = true;
                     } else if (win.layout.tile_pos_in_workspace_view[0] > (3440 - 56)) {
@@ -171,10 +173,14 @@ Singleton {
             newHasLeftOverflow = true;
         }
 
-        for (const win of getWorkspaceWindows(focusedWorkspace?.id)) {
-            if (win.layout.tile_pos_in_workspace_view > focusedWindow.layout.tile_pos_in_workspace_view) {
-                newHasRightOverflow = true;
-                break;
+        if (focusedWindow && focusedWindow.layout && focusedWindow.layout.tile_pos_in_workspace_view) {
+            for (const win of getWorkspaceWindows(focusedWorkspace?.id)) {
+                if (win && win.layout && win.layout.tile_pos_in_workspace_view) {
+                    if (win.layout.tile_pos_in_workspace_view > focusedWindow.layout.tile_pos_in_workspace_view) {
+                        newHasRightOverflow = true;
+                        break;
+                    }
+                }
             }
         }
 
