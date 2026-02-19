@@ -28,8 +28,8 @@ Item {
         id: backdrop
         anchors.top: mainRow.top
         anchors.bottom: mainRow.bottom
-        anchors.topMargin: -10
-        anchors.bottomMargin: -10
+        anchors.topMargin: -5
+        anchors.bottomMargin: -5
         anchors.left: mainRow.left
         anchors.leftMargin: 6 
         anchors.right: mainRow.right

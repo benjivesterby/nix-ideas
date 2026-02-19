@@ -92,8 +92,8 @@ Item {
         id: background
         anchors.top: row.top
         anchors.bottom: row.bottom
-        anchors.topMargin: -10
-        anchors.bottomMargin: -10
+        anchors.topMargin: -5
+        anchors.bottomMargin: -5
         anchors.right: row.right
         anchors.rightMargin: 6
         anchors.left: row.left
