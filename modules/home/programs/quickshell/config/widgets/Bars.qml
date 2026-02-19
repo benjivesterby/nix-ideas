@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import "../services/"
+import "." as Widgets
 
 Scope {
     id: root
@@ -101,6 +102,9 @@ Scope {
                 Region {
                     item: battery
                 }
+                Region {
+                    item: brightness
+                }
             }
 
             Backdrop {
@@ -123,6 +127,13 @@ Scope {
                 id: battery
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 10
+                anchors.right: parent.right
+            }
+
+            Widgets.BrightnessWidget {
+                id: brightness
+                anchors.bottom: battery.top
+                anchors.bottomMargin: 0 // Spacing handled by widget height/padding if needed, but let's check
                 anchors.right: parent.right
             }
         }
