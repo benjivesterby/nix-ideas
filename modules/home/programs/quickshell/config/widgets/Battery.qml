@@ -29,9 +29,9 @@ Item {
 
     onIsChargingChanged: {
         if (isCharging) {
-            PowerProfiles.profile = PowerProfile.Performance;
-        } else {
             PowerProfiles.profile = PowerProfile.Balanced;
+        } else {
+            PowerProfiles.profile = PowerProfile.PowerSaver;
         }
     }
     
