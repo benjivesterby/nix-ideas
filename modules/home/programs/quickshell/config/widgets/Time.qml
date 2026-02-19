@@ -59,18 +59,21 @@ Item {
                     text: Datetime.hours
                     color: root.animTextColor
                     font.pixelSize: 20
+                    font.bold: true
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
                 StyledText {
                     text: Datetime.minutes
                     color: root.animSubtextColor
                     font.pixelSize: 20
+                    font.bold: true
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
                 StyledText {
                     text: Datetime.seconds
                     color: root.animOverlayColor
                     font.pixelSize: 20
+                    font.bold: true
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
             }
