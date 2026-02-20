@@ -66,12 +66,15 @@ Singleton {
 
     property var palette: dark
 
-    function alpha(color, alpha) {
-        var r = parseInt(color.slice(1, 3), 16);
-        var g = parseInt(color.slice(3, 5), 16);
-        var b = parseInt(color.slice(5, 7), 16);
-        var a = Math.round(alpha * 255).toString(16).padStart(2, '0');
-        var ret = "#" + a + r + g + b;
-        return ret;
+    function alpha(color, aValue) {
+        if (typeof color === 'string') {
+            var r = color.slice(1, 3);
+            var g = color.slice(3, 5);
+            var b = color.slice(5, 7);
+            var a = Math.round(aValue * 255).toString(16).padStart(2, '0');
+            return "#" + a + r + g + b;
+        } else {
+            return Qt.rgba(color.r, color.g, color.b, aValue);
+        }
     }
 }

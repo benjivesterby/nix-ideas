@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Layouts
 import QtQuick.Effects
 import QtQuick.Shapes
 import Quickshell
@@ -14,7 +15,7 @@ Item {
     property int iconWidth: Theme.iconWidth
     property int expandedWidth: parent ? parent.width : Theme.widgetExpandedWidth
 
-    Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutQuad } }
+    Behavior on width { NumberAnimation { id: widthAnim; duration: 300; easing.type: Easing.OutQuad } }
 
     // Dynamic theme switching: Animated colors
     property color animIconColor: Colors.dark.text
@@ -118,19 +119,23 @@ Item {
             id: textContainer
             width: root.width - iconContainer.width
             height: parent.height
-            clip: true
+            clip: false
             
-            Row {
+            RowLayout {
                 id: expandedContent
+                anchors.left: parent.left
+                anchors.leftMargin: 16
                 anchors.right: parent.right
+                anchors.rightMargin: 4
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: 12
+                spacing: 2
                 
                 // Power Profile Slider Selector
                 Column {
                     id: profileSelector
+                    Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
+                    Layout.fillWidth: true
                     spacing: 4
-                    anchors.verticalCenter: parent.verticalCenter
                     
                     StyledText {
                         text: root.powerProfileText + " Mode"
@@ -140,7 +145,7 @@ Item {
                     }
 
                     Item {
-                        width: 90
+                        width: parent.width
                         height: 26
                         anchors.horizontalCenter: parent.horizontalCenter
                         
@@ -182,7 +187,10 @@ Item {
                             anchors.verticalCenterOffset: 8 // Match track offset
                             x: 8 + (root.profileStepIndex * (parent.width - 16) / 2) - width/2
                             
-                            Behavior on x { NumberAnimation { duration: 300; easing.type: Easing.OutBack } }
+                            Behavior on x { 
+                                enabled: !widthAnim.running
+                                NumberAnimation { duration: 300; easing.type: Easing.OutBack } 
+                            }
                             Behavior on color { ColorAnimation { duration: 300 } }
                         }
 
@@ -256,9 +264,11 @@ Item {
                     }
                 }
 
+
                 Column {
                     id: textColumn
-                    anchors.verticalCenter: parent.verticalCenter
+                    Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
+                    Layout.preferredWidth: 45
                     spacing: 0
                     
                     StyledText {

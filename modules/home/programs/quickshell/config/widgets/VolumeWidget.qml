@@ -4,6 +4,7 @@ import QtQuick.Effects
 import QtQuick.Shapes
 import Quickshell
 import Quickshell.Io
+import Quickshell.Services.Pipewire
 import "../services"
 import "../services" as Services
 
@@ -19,10 +20,12 @@ Item {
 
     // Theme colors
     property color animIconColor: Colors.dark.text
-    property color animBarColor: Colors.dark.yellow // Using yellow/gold for brightness
+    property color animBarColor: Colors.dark.mauve // Using mauve for volume
     property color animBgColor: Colors.dark.surface0
 
-    readonly property int percentage: Services.Brightness.percentage
+    readonly property real volume: Pipewire.defaultAudioSink?.audio?.volume ?? 0
+    readonly property int percentage: Math.round(volume * 100)
+    readonly property bool isMuted: Pipewire.defaultAudioSink?.audio?.muted ?? false
 
     // Combine hover states to prevent widget collapsing when interacting with slider
     property bool hovered: mouseArea.containsMouse || sliderMouseArea.containsMouse
@@ -31,15 +34,22 @@ Item {
         id: mouseArea
         anchors.fill: background
         hoverEnabled: true
-        // Removed imperative onEntered/onExited, using binding above
         
-        // Scroll to change brightness
+        // Scroll to change volume
         onWheel: (wheel) => {
-            let step = 5;
-            if (wheel.angleDelta.y < 0) {
-                Services.Brightness.setBrightness(Math.max(0, Services.Brightness.percentage - step));
-            } else {
-                Services.Brightness.setBrightness(Math.min(100, Services.Brightness.percentage + step));
+            let step = 0.05;
+            if (Pipewire.defaultAudioSink && Pipewire.defaultAudioSink.audio) {
+                if (wheel.angleDelta.y < 0) {
+                    Pipewire.defaultAudioSink.audio.volume = Math.max(0, volume - step);
+                } else {
+                    Pipewire.defaultAudioSink.audio.volume = Math.min(1, volume + step);
+                }
+            }
+        }
+
+        onClicked: {
+            if (Pipewire.defaultAudioSink && Pipewire.defaultAudioSink.audio) {
+                Pipewire.defaultAudioSink.audio.muted = !isMuted;
             }
         }
     }
@@ -64,7 +74,7 @@ Item {
         // Text and Slider Container
         Item {
             id: textContainer
-            width: root.width - iconContainer.width
+            width: Math.max(0, root.width - iconContainer.width)
             height: parent.height
             clip: false
             
@@ -77,7 +87,7 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 2
 
-                // Brightness Slider
+                // Volume Slider
                 Item {
                     id: sliderContainer
                     Layout.fillWidth: true
@@ -95,7 +105,7 @@ Item {
                         
                         // Fill
                         Rectangle {
-                            width: parent.width * (root.percentage / 100)
+                            width: parent.width * Math.min(1, volume)
                             height: parent.height
                             radius: 2
                             color: root.animBarColor
@@ -109,22 +119,24 @@ Item {
                         radius: 6
                         color: root.animBarColor
                         anchors.verticalCenter: parent.verticalCenter
-                        x: (parent.width - width) * (root.percentage / 100)
+                        x: (parent.width - width) * Math.min(1, volume)
                     }
 
                     MouseArea {
                         id: sliderMouseArea
                         anchors.fill: parent
-                        hoverEnabled: true // Enable to keep widget open
-                        onPressed: (mouse) => updateBrightness(mouse)
+                        hoverEnabled: true 
+                        onPressed: (mouse) => updateVolume(mouse)
                         onPositionChanged: (mouse) => {
-                            if (pressed) updateBrightness(mouse);
+                            if (pressed) updateVolume(mouse);
                         }
                         
-                        function updateBrightness(mouse) {
-                            let val = mouse.x / width * 100;
-                            val = Math.max(0, Math.min(100, val));
-                            Services.Brightness.setBrightness(Math.round(val));
+                        function updateVolume(mouse) {
+                            let val = mouse.x / width;
+                            val = Math.max(0, Math.min(1, val));
+                            if (Pipewire.defaultAudioSink && Pipewire.defaultAudioSink.audio) {
+                                Pipewire.defaultAudioSink.audio.volume = val;
+                            }
                         }
                     }
                 }
@@ -137,7 +149,7 @@ Item {
                     Layout.preferredWidth: 45
                     
                     StyledText {
-                        text: root.percentage + "%"
+                        text: isMuted ? "Muted" : root.percentage + "%"
                         font.pixelSize: 20
                         color: Colors.light.text
                         anchors.right: parent.right
@@ -154,62 +166,90 @@ Item {
 
             Item {
                 id: icon
-                width: 22 
-                height: 22
+                width: 24 
+                height: 24
                 anchors.centerIn: parent
                 
-                // Sun Body (Outline)
-                Rectangle {
-                    id: sunBody
-                    width: 14
-                    height: 14
-                    radius: 7
-                    color: "transparent"
-                    border.width: 2
-                    border.color: root.animIconColor
-                    anchors.centerIn: parent
+                // Speaker Body
+                Shape {
+                    id: speakerShape
+                    anchors.fill: parent
+                    anchors.leftMargin: 2
                     
-                    // Sun Fill (Dynamic Opacity)
-                    Rectangle {
-                        anchors.fill: parent
-                        anchors.margins: 2 // Inside the border
-                        radius: width / 2
-                        color: root.animIconColor
-                        opacity: root.percentage / 100
+                    ShapePath {
+                        strokeWidth: 2
+                        strokeColor: root.animIconColor
+                        fillColor: "transparent"
+                        
+                        // Back rectangle
+                        startX: 2; startY: 8
+                        PathLine { x: 6; y: 8 }
+                        PathLine { x: 12; y: 4 }
+                        PathLine { x: 12; y: 20 }
+                        PathLine { x: 6; y: 16 }
+                        PathLine { x: 2; y: 16 }
+                        PathLine { x: 2; y: 8 }
+                    }
+                    // Fill for the cone part
+                    ShapePath {
+                        strokeWidth: 0
+                        fillColor: Services.Colors.alpha(root.animIconColor, isMuted ? 0.3 : 1.0)
+                        
+                        startX: 2; startY: 8
+                        PathLine { x: 6; y: 8 }
+                        PathLine { x: 12; y: 4 }
+                        PathLine { x: 12; y: 20 }
+                        PathLine { x: 6; y: 16 }
+                        PathLine { x: 2; y: 16 }
+                        PathLine { x: 2; y: 8 }
+                    }
+                }
+                Item {
+                    anchors.fill: parent
+                    visible: !isMuted
+                    
+                    Repeater {
+                        model: 5 // More segments for smoother progression
+                        Shape {
+                            anchors.fill: parent
+                            
+                            readonly property real threshold: index * 0.2
+                            readonly property real segmentVolume: Math.max(0, Math.min(1, (root.volume - threshold) / 0.2))
+                            
+                            ShapePath {
+                                strokeWidth: 2
+                                strokeColor: Services.Colors.alpha(root.animIconColor, segmentVolume)
+                                fillColor: "transparent"
+                                capStyle: ShapePath.RoundCap
+                                
+                                PathAngleArc {
+                                    centerX: 10
+                                    centerY: 12
+                                    radiusX: 5 + index * 3
+                                    radiusY: 5 + index * 3
+                                    startAngle: -45
+                                    sweepAngle: 90
+                                }
+                            }
+                        }
                     }
                 }
 
-                // Sun Rays
-                Repeater {
-                    model: 8
-                    Item {
-                        width: 22
-                        height: 2
-                        anchors.centerIn: parent
-                        rotation: index * 45
+                // Mute Cross (Diagonal Line)
+                Shape {
+                    anchors.fill: parent
+                    visible: isMuted
+                    
+                    ShapePath {
+                        strokeWidth: 2
+                        strokeColor: root.animIconColor
+                        capStyle: ShapePath.RoundCap
                         
-                        Rectangle {
-                            width: 3
-                            height: 2
-                            radius: 1
-                            color: root.animIconColor
-                            anchors.right: parent.right
-                        }
-                        
-                        Rectangle {
-                            width: 3
-                            height: 2
-                            radius: 1
-                            color: root.animIconColor
-                            anchors.left: parent.left
-                        }
+                        startX: 4; startY: 4
+                        PathLine { x: 20; y: 20 }
                     }
                 }
             }
-             
-             // Overlay to show "fill" level on the icon? 
-             // Maybe a circular progress bar around the sun?
-             // For simplicity and matching style, let's just use the text percentage and a static icon that matches the theme.
         }
     }
     
@@ -225,7 +265,7 @@ Item {
             PropertyChanges {
                 target: root
                 animIconColor: Colors.light.text
-                animBarColor: Colors.light.yellow
+                animBarColor: Colors.light.mauve
             }
         }
     ]

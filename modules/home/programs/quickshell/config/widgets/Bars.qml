@@ -116,6 +116,9 @@ Scope {
                 Region {
                     item: brightness
                 }
+                Region {
+                    item: volume
+                }
             }
 
             Backdrop {
@@ -141,6 +144,15 @@ Scope {
                 spacing: Niri.overviewActive ? 17 : 0
 
                 Behavior on spacing { NumberAnimation { duration: 300; easing.type: Easing.OutQuad } }
+
+                Item {
+                    width: Theme.widgetExpandedWidth
+                    height: volume.height
+                    Widgets.VolumeWidget {
+                        id: volume
+                        anchors.right: parent.right
+                    }
+                }
 
                 Item {
                     width: Theme.widgetExpandedWidth
