@@ -63,13 +63,24 @@ Scope {
                 y: parent.height / 2 - height / 2
             }
 
-            Time {
-                id: clock
-                width: 56
+            Column {
                 anchors.left: parent.left
-                anchors.leftMargin: 0
                 anchors.bottom: parent.bottom
-                anchors.bottomMargin: 24
+                anchors.bottomMargin: 15
+                spacing: Niri.overviewActive ? 17 : 0
+
+                Behavior on spacing { NumberAnimation { duration: 300; easing.type: Easing.OutQuad } }
+
+                Item {
+                    id: clockContainer
+                    width: Theme.widgetExpandedWidth
+                    height: 80
+
+                    Time {
+                        id: clock
+                        anchors.left: parent.left
+                    }
+                }
             }
         }
     }
@@ -123,18 +134,31 @@ Scope {
                 }
             }
 
-            Battery {
-                id: battery
+            Column {
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 10
                 anchors.right: parent.right
-            }
+                spacing: Niri.overviewActive ? 17 : 0
 
-            Widgets.BrightnessWidget {
-                id: brightness
-                anchors.bottom: battery.top
-                anchors.bottomMargin: 0 // Spacing handled by widget height/padding if needed, but let's check
-                anchors.right: parent.right
+                Behavior on spacing { NumberAnimation { duration: 300; easing.type: Easing.OutQuad } }
+
+                Item {
+                    width: Theme.widgetExpandedWidth
+                    height: brightness.height
+                    Widgets.BrightnessWidget {
+                        id: brightness
+                        anchors.right: parent.right
+                    }
+                }
+
+                Item {
+                    width: Theme.widgetExpandedWidth
+                    height: battery.height
+                    Battery {
+                        id: battery
+                        anchors.right: parent.right
+                    }
+                }
             }
         }
     }

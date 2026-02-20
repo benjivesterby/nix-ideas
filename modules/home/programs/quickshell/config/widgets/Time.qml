@@ -4,11 +4,15 @@ import "../services"
 
 Item {
     id: root
-    // Width adapts to children. Extra padding to ensure backdrop doesn't clip
-    implicitWidth: mainRow.width + 20
-    height: 60
+    width: hovered || Niri.overviewActive ? expandedWidth : iconWidth
+    height: 80
+
+    property int iconWidth: Theme.iconWidth
+    property int expandedWidth: parent ? parent.width : Theme.widgetExpandedWidth
+
+    Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutQuad } }
     
-    property bool hovered: false
+    property bool hovered: mouseArea.containsMouse
     
     // Dynamic theme colors (Latte on hover, Catppuccin Macchiato/Dark otherwise)
     property color animTextColor: Colors.dark.text
@@ -17,29 +21,24 @@ Item {
     
     MouseArea {
         id: mouseArea
-        anchors.fill: parent
+        anchors.fill: backdrop
         hoverEnabled: true
-        onEntered: root.hovered = true
-        onExited: root.hovered = false
     }
     
     // Shared backdrop component
     HoverBackdrop {
         id: backdrop
-        anchors.top: mainRow.top
-        anchors.bottom: mainRow.bottom
-        anchors.topMargin: -5
-        anchors.bottomMargin: -5
-        anchors.left: mainRow.left
-        anchors.leftMargin: 6 
-        anchors.right: mainRow.right
+        anchors.fill: parent
+        anchors.topMargin: -10
+        anchors.bottomMargin: -10
+        anchors.leftMargin: 6
         anchors.rightMargin: 6
     }
     
     Row {
         id: mainRow
         anchors.left: parent.left
-        height: Math.max(60, dateColumn.implicitHeight)
+        height: parent.height
         anchors.verticalCenter: parent.verticalCenter
         spacing: 0
         
@@ -47,8 +46,7 @@ Item {
         Item {
             id: clockContainer
             width: 56 // Matches the sidebar standard width
-            height: 60
-            anchors.verticalCenter: parent.verticalCenter
+            height: parent.height
             
             Column {
                 id: clockColumn
@@ -82,10 +80,9 @@ Item {
         // Date Container (Revealed on hover)
         Item {
             id: dateContainer
-            width: 0 // Animated expansion
-            height: dateColumn.implicitHeight
+            width: root.width - clockContainer.width
+            height: parent.height
             clip: true
-            anchors.verticalCenter: parent.verticalCenter
             
             Column {
                 id: dateColumn
@@ -144,11 +141,6 @@ Item {
             PropertyChanges {
                 target: backdrop
                 opacity: 1.0
-                anchors.rightMargin: -10 // Expand to cover revealed text
-            }
-            PropertyChanges {
-                target: dateContainer
-                width: dateColumn.implicitWidth + 15
             }
             PropertyChanges {
                 target: root
@@ -163,37 +155,21 @@ Item {
         Transition {
             from: "*"
             to: "hovered"
-            SequentialAnimation {
-                // 1. Fade in backdrop and switch theme colors
-                ParallelAnimation {
-                    NumberAnimation { target: backdrop; property: "opacity"; to: 1.0; duration: 300; easing.type: Easing.OutQuad }
-                    ColorAnimation { target: root; property: "animTextColor"; duration: 300; easing.type: Easing.OutQuad }
-                    ColorAnimation { target: root; property: "animSubtextColor"; duration: 300; easing.type: Easing.OutQuad }
-                    ColorAnimation { target: root; property: "animOverlayColor"; duration: 300; easing.type: Easing.OutQuad }
-                }
-                // 2. Expand width to reveal date
-                ParallelAnimation {
-                    NumberAnimation { target: dateContainer; property: "width"; duration: 300; easing.type: Easing.OutQuad }
-                    NumberAnimation { target: backdrop; property: "anchors.rightMargin"; duration: 300; easing.type: Easing.OutQuad }
-                }
+            ParallelAnimation {
+                NumberAnimation { target: backdrop; property: "opacity"; to: 1.0; duration: 300; easing.type: Easing.OutQuad }
+                ColorAnimation { target: root; property: "animTextColor"; duration: 300; easing.type: Easing.OutQuad }
+                ColorAnimation { target: root; property: "animSubtextColor"; duration: 300; easing.type: Easing.OutQuad }
+                ColorAnimation { target: root; property: "animOverlayColor"; duration: 300; easing.type: Easing.OutQuad }
             }
         },
         Transition {
             from: "hovered"
             to: "*"
-            SequentialAnimation {
-                // 1. Collapse width back to icon size
-                ParallelAnimation {
-                    NumberAnimation { target: dateContainer; property: "width"; to: 0; duration: 250; easing.type: Easing.InQuad }
-                    NumberAnimation { target: backdrop; property: "anchors.rightMargin"; to: 6; duration: 250; easing.type: Easing.InQuad }
-                }
-                // 2. Fade out backdrop and restore dark theme colors
-                ParallelAnimation {
-                    NumberAnimation { target: backdrop; property: "opacity"; to: 0.0; duration: 250; easing.type: Easing.InQuad }
-                    ColorAnimation { target: root; property: "animTextColor"; duration: 250; easing.type: Easing.InQuad }
-                    ColorAnimation { target: root; property: "animSubtextColor"; duration: 250; easing.type: Easing.InQuad }
-                    ColorAnimation { target: root; property: "animOverlayColor"; duration: 250; easing.type: Easing.InQuad }
-                }
+            ParallelAnimation {
+                NumberAnimation { target: backdrop; property: "opacity"; to: 0.0; duration: 250; easing.type: Easing.InQuad }
+                ColorAnimation { target: root; property: "animTextColor"; duration: 250; easing.type: Easing.InQuad }
+                ColorAnimation { target: root; property: "animSubtextColor"; duration: 250; easing.type: Easing.InQuad }
+                ColorAnimation { target: root; property: "animOverlayColor"; duration: 250; easing.type: Easing.InQuad }
             }
         }
     ]

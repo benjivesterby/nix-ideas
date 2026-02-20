@@ -15,14 +15,6 @@ Text {
         }
     }
 
-    Behavior on color {
-        PropertyAnimation {
-            target: root
-            property: "color"
-            easing.type: Easing.OutQuad
-        }
-    }
-
     // MultiEffect {
     //     source: self
     //     anchors.fill: self

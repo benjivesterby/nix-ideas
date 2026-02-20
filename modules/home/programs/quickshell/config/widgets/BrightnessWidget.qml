@@ -8,8 +8,13 @@ import "../services" as Services
 
 Item {
     id: root
-    implicitWidth: row.width
-    height: 60
+    width: hovered || Niri.overviewActive ? expandedWidth : iconWidth
+    height: 50
+
+    property int iconWidth: Theme.iconWidth
+    property int expandedWidth: parent ? parent.width : Theme.widgetExpandedWidth
+
+    Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutQuad } }
 
     // Theme colors
     property color animIconColor: Colors.dark.text
@@ -41,13 +46,10 @@ Item {
     // Shared backdrop component
     HoverBackdrop {
         id: background
-        anchors.top: row.top
-        anchors.bottom: row.bottom
+        anchors.fill: parent
         anchors.topMargin: -5
         anchors.bottomMargin: -5
-        anchors.right: row.right
         anchors.rightMargin: 6
-        anchors.left: row.left
         anchors.leftMargin: 6
     }
 
@@ -56,15 +58,14 @@ Item {
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
         spacing: 0
-        height: Math.max(textContainer.height, iconContainer.height)
+        height: parent.height
 
         // Text and Slider Container
         Item {
             id: textContainer
-            height: Math.max(textColumn.implicitHeight, sliderContainer.implicitHeight)
-            width: 0 // Start closed
+            width: root.width - iconContainer.width
+            height: parent.height
             clip: true
-            anchors.verticalCenter: parent.verticalCenter
             
             Row {
                 id: expandedContent
@@ -143,8 +144,7 @@ Item {
         Item {
             id: iconContainer
             width: 56
-            height: 35
-            anchors.verticalCenter: parent.verticalCenter
+            height: parent.height
 
             Item {
                 id: icon
@@ -215,11 +215,6 @@ Item {
             PropertyChanges {
                 target: background
                 opacity: 1.0
-                anchors.leftMargin: -10
-            }
-            PropertyChanges {
-                target: textContainer
-                width: expandedContent.implicitWidth + 15
             }
             PropertyChanges {
                 target: root
@@ -233,31 +228,19 @@ Item {
         Transition {
             from: "*"
             to: "hovered"
-            SequentialAnimation {
-                ParallelAnimation {
-                    NumberAnimation { target: background; property: "opacity"; to: 1.0; duration: 300; easing.type: Easing.OutQuad }
-                    ColorAnimation { target: root; property: "animIconColor"; duration: 300 }
-                    ColorAnimation { target: root; property: "animBarColor"; duration: 300 }
-                }
-                ParallelAnimation {
-                    NumberAnimation { target: textContainer; property: "width"; duration: 300; easing.type: Easing.OutQuad }
-                    NumberAnimation { target: background; property: "anchors.leftMargin"; duration: 300; easing.type: Easing.OutQuad }
-                }
+            ParallelAnimation {
+                NumberAnimation { target: background; property: "opacity"; to: 1.0; duration: 300; easing.type: Easing.OutQuad }
+                ColorAnimation { target: root; property: "animIconColor"; duration: 300; easing.type: Easing.OutQuad }
+                ColorAnimation { target: root; property: "animBarColor"; duration: 300; easing.type: Easing.OutQuad }
             }
         },
         Transition {
             from: "hovered"
             to: "*"
-            SequentialAnimation {
-                ParallelAnimation {
-                    NumberAnimation { target: textContainer; property: "width"; to: 0; duration: 250; easing.type: Easing.InQuad }
-                    NumberAnimation { target: background; property: "anchors.leftMargin"; to: 6; duration: 250; easing.type: Easing.InQuad }
-                }
-                ParallelAnimation {
-                    NumberAnimation { target: background; property: "opacity"; to: 0.0; duration: 250; easing.type: Easing.InQuad }
-                    ColorAnimation { target: root; property: "animIconColor"; duration: 250 }
-                    ColorAnimation { target: root; property: "animBarColor"; duration: 250 }
-                }
+            ParallelAnimation {
+                NumberAnimation { target: background; property: "opacity"; to: 0.0; duration: 250; easing.type: Easing.InQuad }
+                ColorAnimation { target: root; property: "animIconColor"; duration: 250; easing.type: Easing.InQuad }
+                ColorAnimation { target: root; property: "animBarColor"; duration: 250; easing.type: Easing.InQuad }
             }
         }
     ]

@@ -8,8 +8,13 @@ import "../services"
 
 Item {
     id: root
-    implicitWidth: row.width // Match visible width exactly to prevent overlap
-    height: 60 // Adjust height as needed to fit standard bar width/height
+    width: hovered || Niri.overviewActive ? expandedWidth : iconWidth
+    height: 50
+
+    property int iconWidth: Theme.iconWidth
+    property int expandedWidth: parent ? parent.width : Theme.widgetExpandedWidth
+
+    Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutQuad } }
 
     // Dynamic theme switching: Animated colors
     property color animIconColor: Colors.dark.text
@@ -90,14 +95,11 @@ Item {
     // Shared backdrop component
     HoverBackdrop {
         id: background
-        anchors.top: row.top
-        anchors.bottom: row.bottom
+        anchors.fill: parent
         anchors.topMargin: -5
         anchors.bottomMargin: -5
-        anchors.right: row.right
         anchors.rightMargin: 6
-        anchors.left: row.left
-        anchors.leftMargin: 6 // Start symmetric (match right margin for 10px padding)
+        anchors.leftMargin: 6
     }
 
     Row {
@@ -108,16 +110,15 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         spacing: 0 // Spacing handled by text container margin
         
-        // Stabilize height to prevent jump during animation
-        height: Math.max(textContainer.height, iconContainer.height)
+        // Stabilize height to parent
+        height: parent.height
 
         // Percentage, Time, and Profile Selector Container
         Item {
             id: textContainer
-            height: Math.max(textColumn.implicitHeight, profileSelector.implicitHeight)
-            width: 0 // Start closed
+            width: root.width - iconContainer.width
+            height: parent.height
             clip: true
-            anchors.verticalCenter: parent.verticalCenter
             
             Row {
                 id: expandedContent
@@ -284,8 +285,7 @@ Item {
         Item {
             id: iconContainer
             width: 56 // Standard bar width
-            height: 35 // Approx height of body + tip
-            anchors.verticalCenter: parent.verticalCenter
+            height: parent.height
             
             // Layout: Row to hold Icon and Bolt side-by-side
             Row {
@@ -402,11 +402,6 @@ Item {
             PropertyChanges {
                 target: background
                 opacity: 1.0
-                anchors.leftMargin: -10 // Expand to cover text with padding
-            }
-            PropertyChanges {
-                target: textContainer
-                width: expandedContent.implicitWidth + 15 // Expand for buttons + text + padding
             }
             PropertyChanges {
                 target: root
@@ -421,37 +416,23 @@ Item {
         Transition {
             from: "*"
             to: "hovered"
-            SequentialAnimation {
-                // 1. Background appears and colors switch (symmetric) - Smoother fade in
-                ParallelAnimation {
-                    NumberAnimation { target: background; property: "opacity"; to: 1.0; duration: 300; easing.type: Easing.OutQuad }
-                    ColorAnimation { target: root; property: "animIconColor"; duration: 300; easing.type: Easing.OutQuad }
-                    ColorAnimation { target: root; property: "animRedColor"; duration: 300; easing.type: Easing.OutQuad }
-                    ColorAnimation { target: root; property: "animChargingColor"; duration: 300; easing.type: Easing.OutQuad }
-                }
-                // 2. Expand text and background left margin together - Smoother expansion
-                ParallelAnimation {
-                    NumberAnimation { target: textContainer; property: "width"; duration: 300; easing.type: Easing.OutQuad }
-                    NumberAnimation { target: background; property: "anchors.leftMargin"; duration: 300; easing.type: Easing.OutQuad }
-                }
+            // Colors switch
+            ParallelAnimation {
+                NumberAnimation { target: background; property: "opacity"; to: 1.0; duration: 300; easing.type: Easing.OutQuad }
+                ColorAnimation { target: root; property: "animIconColor"; duration: 300; easing.type: Easing.OutQuad }
+                ColorAnimation { target: root; property: "animRedColor"; duration: 300; easing.type: Easing.OutQuad }
+                ColorAnimation { target: root; property: "animChargingColor"; duration: 300; easing.type: Easing.OutQuad }
             }
         },
         Transition {
             from: "hovered"
             to: "*"
-            SequentialAnimation {
-                // 1. Collapse text and restore symmetric margin
-                ParallelAnimation {
-                    NumberAnimation { target: textContainer; property: "width"; to: 0; duration: 250; easing.type: Easing.InQuad }
-                    NumberAnimation { target: background; property: "anchors.leftMargin"; to: 6; duration: 250; easing.type: Easing.InQuad }
-                }
-                // 2. Background disappears and colors revert
-                ParallelAnimation {
-                    NumberAnimation { target: background; property: "opacity"; to: 0.0; duration: 250; easing.type: Easing.InQuad }
-                    ColorAnimation { target: root; property: "animIconColor"; duration: 250; easing.type: Easing.InQuad }
-                    ColorAnimation { target: root; property: "animRedColor"; duration: 250; easing.type: Easing.InQuad }
-                    ColorAnimation { target: root; property: "animChargingColor"; duration: 250; easing.type: Easing.InQuad }
-                }
+            // Colors revert
+            ParallelAnimation {
+                NumberAnimation { target: background; property: "opacity"; to: 0.0; duration: 250; easing.type: Easing.InQuad }
+                ColorAnimation { target: root; property: "animIconColor"; duration: 250; easing.type: Easing.InQuad }
+                ColorAnimation { target: root; property: "animRedColor"; duration: 250; easing.type: Easing.InQuad }
+                ColorAnimation { target: root; property: "animChargingColor"; duration: 250; easing.type: Easing.InQuad }
             }
         }
     ]
