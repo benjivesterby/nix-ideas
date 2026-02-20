@@ -129,137 +129,110 @@ Item {
                 anchors.rightMargin: 4
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 2
+                opacity: root.hovered || Niri.overviewActive ? 1.0 : 0.0
+                Behavior on opacity { NumberAnimation { duration: 300; easing.type: Easing.OutQuad } }
                 
                 // Power Profile Slider Selector
-                Column {
+                Item {
                     id: profileSelector
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
                     Layout.fillWidth: true
-                    spacing: 4
-                    
-                    StyledText {
-                        text: root.powerProfileText + " Mode"
-                        font.pixelSize: 10
-                        color: Colors.light.subtext1
-                        anchors.horizontalCenter: parent.horizontalCenter
-                    }
+                    height: parent.height
+                    clip: false
 
-                    Item {
+                    Column {
+                        anchors.centerIn: parent
                         width: parent.width
-                        height: 26
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        
-                        // Slider Track
-                        Rectangle {
-                            width: parent.width - 16
-                            height: 2
-                            color: Colors.light.subtext1
-                            opacity: 0.2
-                            radius: 1
-                            anchors.verticalCenter: parent.verticalCenter
-                            anchors.verticalCenterOffset: 8 // Moved down from center
-                            anchors.horizontalCenter: parent.horizontalCenter
+                        spacing: 0 // Reduced from 2 for tighter layout
+
+                        Item {
+                            width: parent.width
+                            height: 14 // Reduced from 16
+                            
+                            Repeater {
+                                model: [
+                                    { icon: "", profile: PowerProfile.PowerSaver },
+                                    { icon: "⚖", profile: PowerProfile.Balanced },
+                                    { icon: "", profile: PowerProfile.Performance }
+                                ]
+                                Item {
+                                    width: 30
+                                    height: parent.height
+                                    // Center precisely on the dot positions (dots are 8px wide)
+                                    x: (index * (parent.width - 8) / 2 + 4) - width/2
+                                    
+                                    StyledText {
+                                        text: modelData.icon
+                                        font.pixelSize: 14
+                                        anchors.centerIn: parent
+                                        color: root.profileStepIndex === index ? root.activeProfileColor : Colors.light.subtext0
+                                        opacity: root.profileStepIndex === index ? 1.0 : 0.4
+                                        Behavior on color { ColorAnimation { duration: 300 } }
+                                    }
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        onClicked: PowerProfiles.profile = modelData.profile
+                                    }
+                                }
+                            }
                         }
 
-                        // Step Markers (Static Dots)
-                        Repeater {
-                            model: 3
-                            Rectangle {
-                                width: 4
-                                height: 4
-                                radius: 2
-                                color: Colors.light.subtext1
+                        // Row 2: Slider Line (Track, Dots, Handle)
+                        Item {
+                            width: parent.width
+                            height: 12
+
+                            // Line and Dots (Background Layer)
+                            Item {
+                                anchors.fill: parent
                                 opacity: 0.2
+                                layer.enabled: true
+                                
+                                Rectangle {
+                                    id: sliderTrack
+                                    width: parent.width
+                                    height: 4
+                                    radius: 2
+                                    color: Colors.light.subtext1
+                                    anchors.centerIn: parent
+                                }
+
+                                Repeater {
+                                    model: 3
+                                    Rectangle {
+                                        width: 8; height: 8; radius: 4
+                                        color: Colors.light.subtext1
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        x: index * (parent.width - width) / 2
+                                    }
+                                }
+                            }
+
+                            // Moving Handle (Foreground Layer)
+                            Rectangle {
+                                id: sliderCursor
+                                width: 12; height: 12; radius: 6
+                                color: root.activeProfileColor
                                 anchors.verticalCenter: parent.verticalCenter
-                                anchors.verticalCenterOffset: 8 // Match track offset
-                                x: 8 + (index * (parent.width - 16) / 2) - width/2
-                            }
-                        }
-
-                        // Moving Cursor
-                        Rectangle {
-                            id: sliderCursor
-                            width: 8
-                            height: 8
-                            radius: 4
-                            color: root.activeProfileColor
-                            anchors.verticalCenter: parent.verticalCenter
-                            anchors.verticalCenterOffset: 8 // Match track offset
-                            x: 8 + (root.profileStepIndex * (parent.width - 16) / 2) - width/2
-                            
-                            Behavior on x { 
-                                enabled: !widthAnim.running
-                                NumberAnimation { duration: 300; easing.type: Easing.OutBack } 
-                            }
-                            Behavior on color { ColorAnimation { duration: 300 } }
-                        }
-
-
-                        // Profile Steps (Leaf, Scales, Bolt)
-                        Item {
-                            id: step0
-                            width: 30
-                            height: parent.height
-                            anchors.verticalCenter: parent.verticalCenter
-                            x: 8 - width/2 // Center on first step (x=8)
-                            
-                            StyledText {
-                                text: "" // nf-fa-leaf (uf06c)
-                                font.pixelSize: 14
-                                anchors.centerIn: parent
-                                anchors.verticalCenterOffset: -4
-                                color: root.profileStepIndex === 0 ? root.activeProfileColor : Colors.light.subtext0
-                                opacity: root.profileStepIndex === 0 ? 1.0 : 0.4
+                                // Center precisely on the dot positions
+                                x: (root.profileStepIndex * (parent.width - 8) / 2 + 4) - width/2
+                                
+                                Behavior on x { 
+                                    enabled: !widthAnim.running
+                                    NumberAnimation { duration: 300; easing.type: Easing.OutBack } 
+                                }
                                 Behavior on color { ColorAnimation { duration: 300 } }
                             }
-                            MouseArea {
-                                anchors.fill: parent
-                                onClicked: PowerProfiles.profile = PowerProfile.PowerSaver
-                            }
                         }
 
-                        Item {
-                            id: step1
-                            width: 30
-                            height: parent.height
-                            anchors.verticalCenter: parent.verticalCenter
-                            x: 8 + (parent.width - 16)/2 - width/2 // Center on middle step
-                            
-                            StyledText {
-                                text: "⚖"
-                                font.pixelSize: 14 // Match leaf size
-                                anchors.centerIn: parent
-                                anchors.verticalCenterOffset: -4
-                                color: root.profileStepIndex === 1 ? root.activeProfileColor : Colors.light.subtext0
-                                opacity: root.profileStepIndex === 1 ? 1.0 : 0.4
-                                Behavior on color { ColorAnimation { duration: 300 } }
-                            }
-                            MouseArea {
-                                anchors.fill: parent
-                                onClicked: PowerProfiles.profile = PowerProfile.Balanced
-                            }
-                        }
-
-                        Item {
-                            id: step2
-                            width: 30
-                            height: parent.height
-                            anchors.verticalCenter: parent.verticalCenter
-                            x: 8 + (parent.width - 16) - width/2 // Center on last step
-                            
-                            StyledText {
-                                text: ""
-                                font.pixelSize: 14
-                                anchors.centerIn: parent
-                                anchors.verticalCenterOffset: -4
-                                color: root.profileStepIndex === 2 ? root.activeProfileColor : Colors.light.subtext0
-                                opacity: root.profileStepIndex === 2 ? 1.0 : 0.4
-                                Behavior on color { ColorAnimation { duration: 300 } }
-                            }
-                            MouseArea {
-                                anchors.fill: parent
-                                onClicked: PowerProfiles.profile = PowerProfile.Performance
-                            }
+                        // Row 3: Mode Text
+                        StyledText {
+                            text: root.powerProfileText + " Mode"
+                            font.pixelSize: 10
+                            color: Colors.light.subtext1
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            height: 12
+                            verticalAlignment: Text.AlignVCenter
                         }
                     }
                 }

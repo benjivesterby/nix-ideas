@@ -23,6 +23,30 @@ Item {
     property color animBgColor: Colors.dark.surface0
 
     readonly property int percentage: Services.Brightness.percentage
+    property real localPercentage: percentage
+    property bool isInteracting: false
+    property bool isDragging: false
+
+    Binding {
+        target: root
+        property: "localPercentage"
+        value: percentage
+        when: !root.isInteracting
+    }
+
+    Behavior on localPercentage {
+        id: sliderBehavior
+        enabled: !root.isDragging
+        NumberAnimation { duration: 300; easing.type: Easing.OutQuad }
+    }
+
+    Timer {
+        id: syncTimer
+        interval: 1000
+        onTriggered: {
+            isInteracting = false;
+        }
+    }
 
     // Combine hover states to prevent widget collapsing when interacting with slider
     property bool hovered: mouseArea.containsMouse || sliderMouseArea.containsMouse
@@ -35,12 +59,17 @@ Item {
         
         // Scroll to change brightness
         onWheel: (wheel) => {
+            isInteracting = true;
+            syncTimer.restart();
             let step = 5;
+            let val = localPercentage;
             if (wheel.angleDelta.y < 0) {
-                Services.Brightness.setBrightness(Math.max(0, Services.Brightness.percentage - step));
+                val = Math.max(0, val - step);
             } else {
-                Services.Brightness.setBrightness(Math.min(100, Services.Brightness.percentage + step));
+                val = Math.min(100, val + step);
             }
+            localPercentage = val;
+            Services.Brightness.setBrightness(val);
         }
     }
 
@@ -76,6 +105,8 @@ Item {
                 anchors.rightMargin: 4
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 2
+                opacity: root.hovered || Niri.overviewActive ? 1.0 : 0.0
+                Behavior on opacity { NumberAnimation { duration: 300; easing.type: Easing.OutQuad } }
 
                 // Brightness Slider
                 Item {
@@ -86,16 +117,18 @@ Item {
                     
                     // Track
                     Rectangle {
-                        width: parent.width
+                        id: track
                         height: 4
                         radius: 2
                         color: Colors.light.subtext1
                         opacity: 0.3
-                        anchors.centerIn: parent
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.verticalCenter: parent.verticalCenter
                         
                         // Fill
                         Rectangle {
-                            width: parent.width * (root.percentage / 100)
+                            width: parent.width * (root.localPercentage / 100.0)
                             height: parent.height
                             radius: 2
                             color: root.animBarColor
@@ -104,26 +137,37 @@ Item {
                     
                     // Handle
                     Rectangle {
+                        id: handle
                         width: 12
                         height: 12
                         radius: 6
                         color: root.animBarColor
                         anchors.verticalCenter: parent.verticalCenter
-                        x: (parent.width - width) * (root.percentage / 100)
+                        x: (parent.width - width) * (root.localPercentage / 100.0)
                     }
 
                     MouseArea {
                         id: sliderMouseArea
                         anchors.fill: parent
                         hoverEnabled: true // Enable to keep widget open
-                        onPressed: (mouse) => updateBrightness(mouse)
+                        onPressed: (mouse) => {
+                            isInteracting = true;
+                            isDragging = true;
+                            syncTimer.stop();
+                            updateBrightness(mouse);
+                        }
                         onPositionChanged: (mouse) => {
                             if (pressed) updateBrightness(mouse);
+                        }
+                        onReleased: {
+                            isDragging = false;
+                            syncTimer.restart();
                         }
                         
                         function updateBrightness(mouse) {
                             let val = mouse.x / width * 100;
                             val = Math.max(0, Math.min(100, val));
+                            root.localPercentage = val;
                             Services.Brightness.setBrightness(Math.round(val));
                         }
                     }
@@ -137,7 +181,7 @@ Item {
                     Layout.preferredWidth: 45
                     
                     StyledText {
-                        text: root.percentage + "%"
+                        text: Math.round(root.localPercentage) + "%"
                         font.pixelSize: 20
                         color: Colors.light.text
                         anchors.right: parent.right
@@ -175,7 +219,7 @@ Item {
                         anchors.margins: 2 // Inside the border
                         radius: width / 2
                         color: root.animIconColor
-                        opacity: root.percentage / 100
+                        opacity: root.localPercentage / 100.0
                     }
                 }
 

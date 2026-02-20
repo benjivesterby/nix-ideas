@@ -23,9 +23,35 @@ Item {
     property color animBarColor: Colors.dark.mauve // Using mauve for volume
     property color animBgColor: Colors.dark.surface0
 
-    readonly property real volume: Pipewire.defaultAudioSink?.audio?.volume ?? 0
-    readonly property int percentage: Math.round(volume * 100)
+    readonly property real systemVolume: {
+        let v = Pipewire.defaultAudioSink?.audio?.volume;
+        return (v === undefined || isNaN(v)) ? 0 : v;
+    }
     readonly property bool isMuted: Pipewire.defaultAudioSink?.audio?.muted ?? false
+    property real localVolume: systemVolume
+    readonly property int percentage: Math.round(systemVolume * 100)
+    property bool isInteracting: false
+    property bool isDragging: false
+
+    Binding {
+        target: root
+        property: "localVolume"
+        value: systemVolume
+        when: !root.isInteracting
+    }
+
+    Behavior on localVolume {
+        enabled: !root.isDragging
+        NumberAnimation { duration: 300; easing.type: Easing.OutQuad }
+    }
+
+    Timer {
+        id: syncTimer
+        interval: 1000
+        onTriggered: {
+            isInteracting = false;
+        }
+    }
 
     // Combine hover states to prevent widget collapsing when interacting with slider
     property bool hovered: mouseArea.containsMouse || sliderMouseArea.containsMouse
@@ -37,13 +63,18 @@ Item {
         
         // Scroll to change volume
         onWheel: (wheel) => {
+            isInteracting = true;
+            syncTimer.restart();
             let step = 0.05;
+            let val = localVolume;
+            if (wheel.angleDelta.y < 0) {
+                val = Math.max(0, val - step);
+            } else {
+                val = Math.min(1, val + step);
+            }
+            localVolume = val;
             if (Pipewire.defaultAudioSink && Pipewire.defaultAudioSink.audio) {
-                if (wheel.angleDelta.y < 0) {
-                    Pipewire.defaultAudioSink.audio.volume = Math.max(0, volume - step);
-                } else {
-                    Pipewire.defaultAudioSink.audio.volume = Math.min(1, volume + step);
-                }
+                Pipewire.defaultAudioSink.audio.volume = val;
             }
         }
 
@@ -86,6 +117,8 @@ Item {
                 anchors.rightMargin: 4
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 2
+                opacity: root.hovered || Niri.overviewActive ? 1.0 : 0.0
+                Behavior on opacity { NumberAnimation { duration: 300; easing.type: Easing.OutQuad } }
 
                 // Volume Slider
                 Item {
@@ -96,16 +129,18 @@ Item {
                     
                     // Track
                     Rectangle {
-                        width: parent.width
+                        id: volumeTrack
                         height: 4
                         radius: 2
                         color: Colors.light.subtext1
                         opacity: 0.3
-                        anchors.centerIn: parent
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.verticalCenter: parent.verticalCenter
                         
                         // Fill
                         Rectangle {
-                            width: parent.width * Math.min(1, volume)
+                            width: parent.width * Math.min(1.0, root.localVolume)
                             height: parent.height
                             radius: 2
                             color: root.animBarColor
@@ -114,26 +149,37 @@ Item {
                     
                     // Handle
                     Rectangle {
+                        id: volumeHandle
                         width: 12
                         height: 12
                         radius: 6
                         color: root.animBarColor
                         anchors.verticalCenter: parent.verticalCenter
-                        x: (parent.width - width) * Math.min(1, volume)
+                        x: (parent.width - width) * Math.min(1.0, root.localVolume)
                     }
 
                     MouseArea {
                         id: sliderMouseArea
                         anchors.fill: parent
                         hoverEnabled: true 
-                        onPressed: (mouse) => updateVolume(mouse)
+                        onPressed: (mouse) => {
+                            isInteracting = true;
+                            isDragging = true;
+                            syncTimer.stop();
+                            updateVolume(mouse);
+                        }
                         onPositionChanged: (mouse) => {
                             if (pressed) updateVolume(mouse);
+                        }
+                        onReleased: {
+                            isDragging = false;
+                            syncTimer.restart();
                         }
                         
                         function updateVolume(mouse) {
                             let val = mouse.x / width;
                             val = Math.max(0, Math.min(1, val));
+                            root.localVolume = val;
                             if (Pipewire.defaultAudioSink && Pipewire.defaultAudioSink.audio) {
                                 Pipewire.defaultAudioSink.audio.volume = val;
                             }
@@ -149,7 +195,7 @@ Item {
                     Layout.preferredWidth: 45
                     
                     StyledText {
-                        text: isMuted ? "Muted" : root.percentage + "%"
+                        text: isMuted ? "Muted" : Math.round(root.localVolume * 100) + "%"
                         font.pixelSize: 20
                         color: Colors.light.text
                         anchors.right: parent.right
@@ -214,7 +260,7 @@ Item {
                             anchors.fill: parent
                             
                             readonly property real threshold: index * 0.2
-                            readonly property real segmentVolume: Math.max(0, Math.min(1, (root.volume - threshold) / 0.2))
+                            readonly property real segmentVolume: Math.max(0, Math.min(1, (root.localVolume - threshold) / 0.2))
                             
                             ShapePath {
                                 strokeWidth: 2
