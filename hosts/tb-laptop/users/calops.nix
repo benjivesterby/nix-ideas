@@ -13,7 +13,7 @@
     niriExtraConfig = # kdl
       ''
         output "China Star Optoelectronics Technology Co., Ltd MNE507ZA2-3 Unknown" {
-          mode "3072x1920@60.001"
+          mode "3072x1920@120.000"
           focus-at-startup
           variable-refresh-rate
 

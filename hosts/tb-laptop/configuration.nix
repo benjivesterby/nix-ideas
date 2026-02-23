@@ -42,7 +42,11 @@
   };
   hardware.enableRedistributableFirmware = true;
 
-  boot.kernelPackages = pkgs.linuxPackages_testing;
+  # Force touchpad to use InterTouch (RMI4/SMBus) instead of legacy PS/2
+  boot.kernelParams = [ "psmouse.synaptics_intertouch=1" ];
+
+  # 6.19 seems to introduce a regression that throttles the cpu when plugged in
+  boot.kernelPackages = pkgs.linuxPackages_6_18;
 
   # SSD periodic trimming
   services.fstrim.enable = true;

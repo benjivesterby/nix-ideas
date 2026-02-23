@@ -4,6 +4,6 @@ PropertyAnimation {
     required property var target
     property: "opacity"
     to: 1
-    duration: 300
+    duration: Theme.animationDuration
     easing.type: Easing.Quad
 }

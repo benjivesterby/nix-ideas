@@ -28,5 +28,6 @@
     ./nushell
     ./oh-my-posh.nix
     ./stasis.nix
+    ./zed.nix
   ];
 }

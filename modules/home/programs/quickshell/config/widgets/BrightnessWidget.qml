@@ -15,7 +15,7 @@ Item {
     property int iconWidth: Theme.iconWidth
     property int expandedWidth: parent ? parent.width : Theme.widgetExpandedWidth
 
-    Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutQuad } }
+    Behavior on width { NumberAnimation { duration: Theme.animationDuration; easing.type: Easing.OutQuad } }
 
     // Theme colors
     property color animIconColor: Colors.dark.text
@@ -37,7 +37,7 @@ Item {
     Behavior on localPercentage {
         id: sliderBehavior
         enabled: !root.isDragging
-        NumberAnimation { duration: 300; easing.type: Easing.OutQuad }
+        NumberAnimation { duration: Theme.animationDuration; easing.type: Easing.OutQuad }
     }
 
     Timer {
@@ -106,7 +106,7 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 2
                 opacity: root.hovered || Niri.overviewActive ? 1.0 : 0.0
-                Behavior on opacity { NumberAnimation { duration: 300; easing.type: Easing.OutQuad } }
+                Behavior on opacity { NumberAnimation { duration: Theme.animationDuration; easing.type: Easing.OutQuad } }
 
                 // Brightness Slider
                 Item {
@@ -279,18 +279,18 @@ Item {
             from: "*"
             to: "hovered"
             ParallelAnimation {
-                NumberAnimation { target: background; property: "opacity"; to: 1.0; duration: 300; easing.type: Easing.OutQuad }
-                ColorAnimation { target: root; property: "animIconColor"; duration: 300; easing.type: Easing.OutQuad }
-                ColorAnimation { target: root; property: "animBarColor"; duration: 300; easing.type: Easing.OutQuad }
+                NumberAnimation { target: background; property: "opacity"; to: 1.0; duration: Theme.animationDuration; easing.type: Easing.OutQuad }
+                ColorAnimation { target: root; property: "animIconColor"; duration: Theme.animationDuration; easing.type: Easing.OutQuad }
+                ColorAnimation { target: root; property: "animBarColor"; duration: Theme.animationDuration; easing.type: Easing.OutQuad }
             }
         },
         Transition {
             from: "hovered"
             to: "*"
             ParallelAnimation {
-                NumberAnimation { target: background; property: "opacity"; to: 0.0; duration: 250; easing.type: Easing.InQuad }
-                ColorAnimation { target: root; property: "animIconColor"; duration: 250; easing.type: Easing.InQuad }
-                ColorAnimation { target: root; property: "animBarColor"; duration: 250; easing.type: Easing.InQuad }
+                NumberAnimation { target: background; property: "opacity"; to: 0.0; duration: Theme.animationDurationOut; easing.type: Easing.InQuad }
+                ColorAnimation { target: root; property: "animIconColor"; duration: Theme.animationDurationOut; easing.type: Easing.InQuad }
+                ColorAnimation { target: root; property: "animBarColor"; duration: Theme.animationDurationOut; easing.type: Easing.InQuad }
             }
         }
     ]

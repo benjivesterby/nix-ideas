@@ -10,7 +10,7 @@ Item {
     property int iconWidth: Theme.iconWidth
     property int expandedWidth: parent ? parent.width : Theme.widgetExpandedWidth
 
-    Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutQuad } }
+    Behavior on width { NumberAnimation { duration: Theme.animationDuration; easing.type: Easing.OutQuad } }
     
     property bool hovered: mouseArea.containsMouse
     
@@ -156,20 +156,20 @@ Item {
             from: "*"
             to: "hovered"
             ParallelAnimation {
-                NumberAnimation { target: backdrop; property: "opacity"; to: 1.0; duration: 300; easing.type: Easing.OutQuad }
-                ColorAnimation { target: root; property: "animTextColor"; duration: 300; easing.type: Easing.OutQuad }
-                ColorAnimation { target: root; property: "animSubtextColor"; duration: 300; easing.type: Easing.OutQuad }
-                ColorAnimation { target: root; property: "animOverlayColor"; duration: 300; easing.type: Easing.OutQuad }
+                NumberAnimation { target: backdrop; property: "opacity"; to: 1.0; duration: Theme.animationDuration; easing.type: Easing.OutQuad }
+                ColorAnimation { target: root; property: "animTextColor"; duration: Theme.animationDuration; easing.type: Easing.OutQuad }
+                ColorAnimation { target: root; property: "animSubtextColor"; duration: Theme.animationDuration; easing.type: Easing.OutQuad }
+                ColorAnimation { target: root; property: "animOverlayColor"; duration: Theme.animationDuration; easing.type: Easing.OutQuad }
             }
         },
         Transition {
             from: "hovered"
             to: "*"
             ParallelAnimation {
-                NumberAnimation { target: backdrop; property: "opacity"; to: 0.0; duration: 250; easing.type: Easing.InQuad }
-                ColorAnimation { target: root; property: "animTextColor"; duration: 250; easing.type: Easing.InQuad }
-                ColorAnimation { target: root; property: "animSubtextColor"; duration: 250; easing.type: Easing.InQuad }
-                ColorAnimation { target: root; property: "animOverlayColor"; duration: 250; easing.type: Easing.InQuad }
+                NumberAnimation { target: backdrop; property: "opacity"; to: 0.0; duration: Theme.animationDurationOut; easing.type: Easing.InQuad }
+                ColorAnimation { target: root; property: "animTextColor"; duration: Theme.animationDurationOut; easing.type: Easing.InQuad }
+                ColorAnimation { target: root; property: "animSubtextColor"; duration: Theme.animationDurationOut; easing.type: Easing.InQuad }
+                ColorAnimation { target: root; property: "animOverlayColor"; duration: Theme.animationDurationOut; easing.type: Easing.InQuad }
             }
         }
     ]

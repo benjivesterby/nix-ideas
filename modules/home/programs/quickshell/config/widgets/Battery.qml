@@ -15,7 +15,7 @@ Item {
     property int iconWidth: Theme.iconWidth
     property int expandedWidth: parent ? parent.width : Theme.widgetExpandedWidth
 
-    Behavior on width { NumberAnimation { id: widthAnim; duration: 300; easing.type: Easing.OutQuad } }
+    Behavior on width { NumberAnimation { id: widthAnim; duration: Theme.animationDuration; easing.type: Easing.OutQuad } }
 
     // Dynamic theme switching: Animated colors
     property color animIconColor: Colors.dark.text
@@ -130,7 +130,7 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 2
                 opacity: root.hovered || Niri.overviewActive ? 1.0 : 0.0
-                Behavior on opacity { NumberAnimation { duration: 300; easing.type: Easing.OutQuad } }
+                Behavior on opacity { NumberAnimation { duration: Theme.animationDuration; easing.type: Easing.OutQuad } }
                 
                 // Power Profile Slider Selector
                 Item {
@@ -167,7 +167,7 @@ Item {
                                         anchors.centerIn: parent
                                         color: root.profileStepIndex === index ? root.activeProfileColor : Colors.light.subtext0
                                         opacity: root.profileStepIndex === index ? 1.0 : 0.4
-                                        Behavior on color { ColorAnimation { duration: 300 } }
+                                        Behavior on color { ColorAnimation { duration: Theme.animationDuration } }
                                     }
                                     MouseArea {
                                         anchors.fill: parent
@@ -219,9 +219,9 @@ Item {
                                 
                                 Behavior on x { 
                                     enabled: !widthAnim.running
-                                    NumberAnimation { duration: 300; easing.type: Easing.OutBack } 
+                                    NumberAnimation { duration: Theme.animationDuration; easing.type: Easing.OutBack } 
                                 }
-                                Behavior on color { ColorAnimation { duration: 300 } }
+                                Behavior on color { ColorAnimation { duration: Theme.animationDuration } }
                             }
                         }
 
@@ -309,7 +309,7 @@ Item {
                             height: 18
                             // Remove visible binding to allow fade-out
                             opacity: root.isCharging ? 1.0 : 0.0
-                            Behavior on opacity { NumberAnimation { duration: 300 } }
+                            Behavior on opacity { NumberAnimation { duration: Theme.animationDuration } }
                             
                             ShapePath {
                                 strokeWidth: 0
@@ -354,7 +354,7 @@ Item {
                                 height: 18
                                 // Remove visible binding to allow fade-out
                                 opacity: root.isCharging ? 1.0 : 0.0
-                                Behavior on opacity { NumberAnimation { duration: 300 } }
+                                Behavior on opacity { NumberAnimation { duration: Theme.animationDuration } }
                                 
                                 ShapePath {
                                     strokeWidth: 0
@@ -401,10 +401,10 @@ Item {
             to: "hovered"
             // Colors switch
             ParallelAnimation {
-                NumberAnimation { target: background; property: "opacity"; to: 1.0; duration: 300; easing.type: Easing.OutQuad }
-                ColorAnimation { target: root; property: "animIconColor"; duration: 300; easing.type: Easing.OutQuad }
-                ColorAnimation { target: root; property: "animRedColor"; duration: 300; easing.type: Easing.OutQuad }
-                ColorAnimation { target: root; property: "animChargingColor"; duration: 300; easing.type: Easing.OutQuad }
+                NumberAnimation { target: background; property: "opacity"; to: 1.0; duration: Theme.animationDuration; easing.type: Easing.OutQuad }
+                ColorAnimation { target: root; property: "animIconColor"; duration: Theme.animationDuration; easing.type: Easing.OutQuad }
+                ColorAnimation { target: root; property: "animRedColor"; duration: Theme.animationDuration; easing.type: Easing.OutQuad }
+                ColorAnimation { target: root; property: "animChargingColor"; duration: Theme.animationDuration; easing.type: Easing.OutQuad }
             }
         },
         Transition {
@@ -412,10 +412,10 @@ Item {
             to: "*"
             // Colors revert
             ParallelAnimation {
-                NumberAnimation { target: background; property: "opacity"; to: 0.0; duration: 250; easing.type: Easing.InQuad }
-                ColorAnimation { target: root; property: "animIconColor"; duration: 250; easing.type: Easing.InQuad }
-                ColorAnimation { target: root; property: "animRedColor"; duration: 250; easing.type: Easing.InQuad }
-                ColorAnimation { target: root; property: "animChargingColor"; duration: 250; easing.type: Easing.InQuad }
+                NumberAnimation { target: background; property: "opacity"; to: 0.0; duration: Theme.animationDurationOut; easing.type: Easing.InQuad }
+                ColorAnimation { target: root; property: "animIconColor"; duration: Theme.animationDurationOut; easing.type: Easing.InQuad }
+                ColorAnimation { target: root; property: "animRedColor"; duration: Theme.animationDurationOut; easing.type: Easing.InQuad }
+                ColorAnimation { target: root; property: "animChargingColor"; duration: Theme.animationDurationOut; easing.type: Easing.InQuad }
             }
         }
     ]

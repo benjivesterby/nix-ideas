@@ -8,4 +8,9 @@ Singleton {
 
     readonly property int widgetExpandedWidth: 260
     readonly property int iconWidth: 56
+    
+    // Global animation timings
+    readonly property int animationDuration: 300
+    readonly property int animationDurationOut: 250
+    readonly property int animationDurationFast: 150
 }
