@@ -14,68 +14,125 @@ Item {
     property var activeMenuModel: null
     property alias bubbleBg: bubbleBackground
     
-    // Remember the last hovered item so we can animate from/to its center
+    // Remember the geometry of the last hovered item so we can animate from/to its center
     // when transitioning from/to the completely unhovered state
     property var lastHoveredItem: null
+    property rect lastHoveredRect: Qt.rect(0, 0, 0, 0)
     
     // Unified hover state
     property bool iconHovered: false
-    property bool menuHovered: false
+    property int menuHoverCount: 0
+    readonly property bool menuHovered: menuHoverCount > 0
     readonly property bool isHovered: iconHovered || menuHovered
+    
+    // The widgetMouseArea was causing event interference when moving downwards.
+    // We now rely purely on the unified 'isHovered', 'Niri.overviewActive',
+    // and whether a menu is actively held open.
+    readonly property bool expanded: isHovered || Niri.overviewActive || activeMenuModel !== null
+    
+    width: expanded ? Theme.widgetExpandedWidth : Theme.iconWidth
+    Behavior on width { NumberAnimation { duration: Theme.animationDuration; easing.type: Easing.OutQuad } }
 
-    // No active logs in production
-
-    Timer {
-        id: closeTimer
-        interval: 300
-        running: !root.isHovered && root.activeMenuModel !== null
-        onTriggered: {
-            root.hoveredItem = null;
-            root.activeMenuModel = null;
+    HoverBackdrop {
+        id: backdrop
+        anchors.fill: root
+        anchors.topMargin: -10
+        anchors.bottomMargin: -10
+        anchors.leftMargin: 6
+        anchors.rightMargin: 6
+        z: 1
+        opacity: root.expanded ? 1.0 : 0.0
+        Behavior on opacity { 
+            NumberAnimation { 
+                duration: root.expanded ? Theme.animationDuration : Theme.animationDurationOut 
+                easing.type: root.expanded ? Easing.OutQuad : Easing.InQuad 
+            } 
         }
     }
 
-    // Menu popup dimensions (set from Bars.qml)
+
+    // We strictly need this timer to close the Wayland surface when the mouse leaves the
+    // entire SysTray + Menu area. The submenu doesn't need this because it closes transparently
+    // alongside the main menu.
+    Timer {
+        id: menuCloseTimer
+        interval: 150
+        running: !root.isHovered
+        onTriggered: {
+            if (root.activeMenuModel !== null) {
+                root.hoveredItem = null;
+                root.activeMenuModel = null;
+            }
+        }
+    }
     property rect menuRect: Qt.rect(0, 0, 0, 0)
+
+
+
+
 
     ShaderEffect {
         id: bubbleBackground
         
         // Dynamically expand the shader bounds to cover both the tray icons and the menu
-        property real minY: root.menuRect.width > 0 ? Math.min(0, root.menuRect.y - tray.y - 12) : 0
-        property real maxY: root.menuRect.width > 0 ? Math.max(parent.height, root.menuRect.y - tray.y + root.menuRect.height + 12) : parent.height
+        // We must subtract root.y from menuRect.y to bring it into the tray's local coordinate system!
+        property real minY: root.menuRect.width > 0 ? Math.min(0, (root.menuRect.y - root.y) - 12) : 0
+        property real maxY: root.menuRect.width > 0 ? Math.max(parent.height, (root.menuRect.y - root.y) + root.menuRect.height + 12) : parent.height
         
         Behavior on minY { NumberAnimation { duration: Theme.animationDuration; easing.type: Easing.OutQuad } }
         Behavior on maxY { NumberAnimation { duration: Theme.animationDuration; easing.type: Easing.OutQuad } }
         
         x: 0
         y: minY
-        width: root.menuRect.width > 0 ? 56 + root.menuRect.x + root.menuRect.width - tray.x + 12 : 56
+        width: root.menuRect.width > 0 ? root.menuRect.x + root.menuRect.width + 12 : (root.expanded ? root.width : 56)
         Behavior on width { NumberAnimation { duration: Theme.animationDuration; easing.type: Easing.OutQuad } }
         
         height: maxY - minY
-        z: -1
+        z: 2
         visible: opacity > 0
+        property bool allowsAnimation: false
+        onVisibleChanged: {
+            if (visible) {
+                Qt.callLater(() => { allowsAnimation = true; });
+            } else {
+                allowsAnimation = false;
+            }
+        }
 
         // Active item is only the currently hovered item, or the last one if we are fading out
-        // BUT if we are completely invisible (opacity == 0), we want the bubble to snap to the NEW
-        // item immediately without transitioning from the vastly outdated `lastHoveredItem`.
         property var activeItem: root.hoveredItem || root.lastHoveredItem
-        property rect rect1: activeItem
-            ? (root.hoveredItem || opacity > 0
-                ? Qt.rect(activeItem.x - 2, activeItem.y - 2 - minY,
-                          activeItem.width + 4, activeItem.height + 4)
-                : Qt.rect(activeItem.x + activeItem.width / 2, activeItem.y + activeItem.height / 2 - minY, 0, 0))
-            : Qt.rect(0, 0, 0, 0)
+        property rect rect1: {
+            if (!activeItem) return Qt.rect(0, 0, 0, 0);
+            
+            // If actively hovered, map perfectly to its bounds
+            if (root.hoveredItem !== null) {
+                return Qt.rect(6, activeItem.y - minY, 
+                              (root.expanded ? root.width - 12 : activeItem.width + 12), 
+                              activeItem.height);
+            }
+            
+            // If fading out or in transition gap, use the cached rectangle so it doesn't jump
+            // if the layout shifts or active item parameters become unstable
+            if (bubbleBackground.opacity > 0) {
+               return Qt.rect(6, root.lastHoveredRect.y - minY,
+                              (root.expanded ? root.width - 12 : root.lastHoveredRect.width + 12),
+                              root.lastHoveredRect.height);
+            }
+            
+            // Closed/Collapsed center dot state
+            return Qt.rect(root.lastHoveredRect.x + root.lastHoveredRect.width / 2,
+                           root.lastHoveredRect.y + root.lastHoveredRect.height / 2 - minY, 
+                           0, 0);
+        }
             
         Behavior on rect1 {
-            enabled: bubbleBackground.opacity > 0.01
+            enabled: bubbleBackground.allowsAnimation
             PropertyAnimation { duration: Theme.animationDuration; easing.type: Easing.OutQuad }
         }
             
         // When menu is closed, rect2 = rect1 so it smoothly grows out of/into the icon
-        property rect rect2: root.menuRect.width > 0
-            ? Qt.rect(root.menuRect.x - tray.x, root.menuRect.y - tray.y - minY,
+        property rect rect2: (root.menuRect.width > 0 && bubbleBackground.allowsAnimation)
+            ? Qt.rect(root.menuRect.x, (root.menuRect.y - root.y) - minY,
                       root.menuRect.width, root.menuRect.height)
             : rect1
         property rect rect3: Qt.rect(0, 0, 0, 0)
@@ -83,26 +140,56 @@ Item {
         property real radius2: 10
         property real radius3: 14
         property real smoothness: 15.0
-        property color bubbleColor: Colors.light.base
+        property color bubbleColor: "#ffffff"
         property real uWidth: bubbleBackground.width
         property real uHeight: bubbleBackground.height
 
         Behavior on rect2 {
-            enabled: bubbleBackground.opacity > 0.01
+            enabled: bubbleBackground.allowsAnimation
             PropertyAnimation { duration: Theme.animationDuration; easing.type: Easing.OutQuad }
         }
 
-        opacity: root.hoveredItem ? 1.0 : 0.0
-        Behavior on opacity { NumberAnimation { duration: root.hoveredItem ? Theme.animationDuration : Theme.animationDurationOut; easing.type: root.hoveredItem ? Easing.OutQuad : Easing.InQuad } }
+        // Entire visibility tied directly to isHovered to match subMenuBlob pattern
+        opacity: root.isHovered ? 1.0 : 0.0
+        Behavior on opacity {
+            NumberAnimation { duration: root.isHovered ? Theme.animationDuration : Theme.animationDurationOut; easing.type: root.isHovered ? Easing.OutQuad : Easing.InQuad }
+        }
 
         fragmentShader: Qt.resolvedUrl("shaders/bubble.frag.qsb")
     }
 
+    function getDisplayName(item) {
+        if (!item) return "";
+        if (item.title && item.title.length > 0) return item.title;
+        
+        // Fallback to ID if title is empty
+        var id = item.id || "";
+        // Clean up common prefixes and suffixes
+        var parts = id.split(".");
+        var name = parts[parts.length - 1];
+        
+        // Remove trailing numbers (e.g. StatusNotifierItem-1234-1)
+        name = name.replace(/-\d+-\d+$/, "");
+        name = name.replace(/StatusNotifierItem$/, "");
+        
+        // If it's still generic, try tooltip
+        if ((name === "" || name === "SNI") && item.tooltip) {
+            return item.tooltip.split("\n")[0];
+        }
+        
+        // Capitalize first letter
+        if (name.length > 0) {
+            return name.charAt(0).toUpperCase() + name.slice(1);
+        }
+        
+        return name;
+    }
+
     ColumnLayout {
         id: trayLayout
-        x: 0
-        width: 56
-        spacing: 1
+        anchors.fill: root
+        spacing: 0
+        z: 3
 
         Repeater {
             model: SystemTray.items
@@ -110,21 +197,52 @@ Item {
                 id: itemRoot
                 required property SystemTrayItem modelData
 
-                Layout.alignment: Qt.AlignCenter
-                width: 24
-                height: 24
+                Layout.alignment: Qt.AlignLeft
+                Layout.fillWidth: true
+                height: 28
 
-                Image {
-                    anchors.centerIn: parent
-                    source: itemRoot.modelData.icon
-                    sourceSize.width: 16
-                    sourceSize.height: 16
-                    smooth: true
+                RowLayout {
+                    anchors.fill: parent
+                    spacing: 0
 
-                    layer.enabled: root.hoveredItem === itemRoot
-                    layer.effect: MultiEffect {
-                        colorization: 1.0
-                        colorizationColor: Colors.light.text
+                    Item {
+                        Layout.preferredWidth: 56
+                        Layout.fillHeight: true
+                        Layout.alignment: Qt.AlignVCenter
+                        Image {
+                            anchors.centerIn: parent
+                            source: itemRoot.modelData.icon
+                            sourceSize.width: 22
+                            sourceSize.height: 22
+                            fillMode: Image.PreserveAspectFit
+                            width: 22
+                            height: 22
+                            smooth: true
+
+                            // Maintain original logic but apply to expanded state as requested
+                            property bool isSymbolic: String(itemRoot.modelData.icon).includes("-symbolic") || root.expanded || root.hoveredItem === itemRoot
+                            layer.enabled: isSymbolic
+                            layer.effect: MultiEffect {
+                                colorization: 1.0
+                                colorizationColor: (root.expanded || root.hoveredItem === itemRoot) ? Colors.palette.base : Colors.palette.text
+                                brightness: 1.0
+                                contrast: 1.0
+                            }
+                        }
+                    }
+
+                    StyledText {
+                        text: root.getDisplayName(itemRoot.modelData)
+                        Layout.fillWidth: true
+                        Layout.rightMargin: 12
+                        color: root.hoveredItem === itemRoot ? Colors.light.text : (root.expanded ? Colors.light.text : Colors.dark.text)
+                        font.pixelSize: 14
+                        font.bold: true
+                        elide: Text.ElideRight
+                        // Only show the text if the widget is globally expanded OR if this specific item is hovered
+                        opacity: (root.expanded || root.hoveredItem === itemRoot) ? 1.0 : 0.0
+                        Behavior on opacity { NumberAnimation { duration: Theme.animationDuration } }
+                        visible: opacity > 0
                     }
                 }
 
@@ -133,19 +251,30 @@ Item {
                     hoverEnabled: true
                     acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
 
-                    onEntered: {
-                        root.iconHovered = true;
-                        if (bubbleBackground.opacity === 0) {
-                            // If completely hidden, update lastHoveredItem first to instantly snap there
-                            // before the opacity animation re-enables the slide behavior from a stale position.
-                            root.lastHoveredItem = itemRoot;
+                    // We bind the icon's hovered state directly to whether the mouse is inside
+                    // the item's MouseArea, rather than relying on imperative entered/exited
+                    // signals which can fire out of order when adjacent elements overlap or
+                    // when the parent structure shifts.
+                    onContainsMouseChanged: {
+                        if (containsMouse) {
+                            root.iconHovered = true;
+                            if (bubbleBackground.opacity === 0) {
+                                root.lastHoveredItem = itemRoot;
+                                root.lastHoveredRect = Qt.rect(itemRoot.x, itemRoot.y, itemRoot.width, itemRoot.height);
+                            }
+                            root.hoveredItem = itemRoot;
+                            root.lastHoveredRect = Qt.rect(itemRoot.x, itemRoot.y, itemRoot.width, itemRoot.height);
+                            root.activeMenuModel = itemRoot.modelData.menu ?? null;
+                        } else {
+                            // Only un-set if THIS item was the one hovered
+                            if (root.hoveredItem === itemRoot) {
+                                root.iconHovered = false;
+                                root.lastHoveredItem = itemRoot;
+                                root.lastHoveredRect = Qt.rect(itemRoot.x, itemRoot.y, itemRoot.width, itemRoot.height);
+                            }
                         }
-                        root.hoveredItem = itemRoot;
-                        root.activeMenuModel = itemRoot.modelData.menu ?? null;
                     }
-                    onExited: {
-                        root.iconHovered = false;
-                    }
+
                     onClicked: mouse => {
                         if (mouse.button === Qt.LeftButton) itemRoot.modelData.activate();
                         else if (mouse.button === Qt.RightButton) itemRoot.modelData.contextMenu();
@@ -155,4 +284,5 @@ Item {
             }
         }
     }
+
 }
