@@ -1,4 +1,4 @@
-{ flake, ... }:
+{ flake, pkgs, ... }:
 {
   imports = [
     flake.homeModules.default
@@ -30,14 +30,14 @@
 
   programs.git.includes = [
     {
-      condition = "gitdir:~/terabase/*";
+      condition = "gitdir:~/terabase/";
       contents = {
         user = {
           name = "Rémi Labeyrie";
           email = "remilabeyrie@terabase.energy";
         };
 
-        core.sshCommand = "ssh -vi ~/.ssh/terabase-bitbucket.pub";
+        core.sshCommand = "ssh -i ~/.ssh/terabase-bitbucket.pub";
       };
     }
   ];
@@ -47,4 +47,8 @@
     identitiesOnly = true;
     identityFile = "~/.ssh/terabase-bitbucket.pub";
   };
+
+  home.packages = [
+    pkgs.teams-for-linux
+  ];
 }

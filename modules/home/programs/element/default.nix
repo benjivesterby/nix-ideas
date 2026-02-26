@@ -8,7 +8,22 @@ let
   cfg = config.my.roles.graphical;
   palette = config.my.colors.palette.asHexWithHashtag;
   font = config.my.roles.graphical.fonts.monospace.name;
-  elementPkg = pkgs.element-desktop;
+  myLib = import ../../../../lib { };
+  elementPkg = myLib.replaceTrayIcons pkgs.element-desktop {
+    inherit pkgs;
+    icons = [
+      {
+        icon = "element-desktop-tray";
+        file = "share/element/build/icon.png";
+        size = 128;
+      }
+      {
+        icon = "element-desktop";
+        file = "share/icons/hicolor/512x512/apps/element.png";
+        size = 512;
+      }
+    ];
+  };
 in
 {
   options.programs.element.package = lib.mkOption {

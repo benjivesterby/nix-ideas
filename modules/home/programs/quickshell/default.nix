@@ -17,6 +17,16 @@ in
       enable = true;
       activeConfig = null;
       systemd.enable = true;
+
+      # Necessary for tray icons detection
+      package = pkgs.symlinkJoin {
+        name = "quickshell";
+        paths = [ pkgs.quickshell ];
+        nativeBuildInputs = [ pkgs.makeWrapper ];
+        postBuild = ''
+          wrapProgram $out/bin/quickshell --set QT_QPA_PLATFORMTHEME gtk3
+        '';
+      };
     };
 
     home.file."Pictures/Wallpapers/main.png".source = config.stylix.image;

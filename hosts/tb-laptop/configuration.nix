@@ -29,6 +29,12 @@
     bluetooth.enable = true;
   };
 
+  boot.supportedFilesystems = [ "ntfs" ];
+
+  environment.systemPackages = [
+    pkgs.woeusb-ng
+  ];
+
   services.xserver.videoDrivers = [ "modesetting" ];
   hardware.graphics = {
     enable = true;

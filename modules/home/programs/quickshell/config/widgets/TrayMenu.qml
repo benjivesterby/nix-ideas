@@ -142,6 +142,16 @@ PopupWindow {
             property real uHeight: height
             
             fragmentShader: Qt.resolvedUrl("shaders/bubble.frag.qsb")
+
+            layer.enabled: true
+            layer.effect: MultiEffect {
+                shadowEnabled: true
+                shadowColor: "black"
+                shadowBlur: 1.0
+                shadowOpacity: 0.5
+                shadowVerticalOffset: 2
+                shadowHorizontalOffset: 2
+            }
         }
 
         MouseArea {
