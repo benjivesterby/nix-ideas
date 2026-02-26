@@ -4,6 +4,7 @@ import QtQuick.Effects
 import Quickshell
 import Quickshell.Services.SystemTray
 import "../services"
+import "../data/AppMappings.js" as AppMappings
 
 Item {
     id: root
@@ -182,9 +183,23 @@ Item {
         name = name.replace(/-\d+-\d+$/, "");
         name = name.replace(/StatusNotifierItem$/, "");
         
-        // If it's still generic, try tooltip
-        if ((name === "" || name === "SNI") && item.tooltip) {
-            return item.tooltip.split("\n")[0];
+        // If it's still generic (like chrome_status_icon_1), try to guess from tooltip or icon
+        if (name === "" || name === "SNI" || name.startsWith("chrome_status_icon_")) {
+            var tooltip = item.tooltipTitle || "";
+            
+            var mappedName = AppMappings.getAppNameFromTooltip(tooltip);
+            if (mappedName) {
+                return mappedName;
+            }
+            
+            // If tooltip is short, it might be the app name
+            var firstLine = tooltip.split("\n")[0];
+            if (firstLine.length > 0 && firstLine.length <= 15) {
+                return firstLine;
+            }
+            
+            // Fallback to generic name to avoid overflowing
+            return "App";
         }
         
         // Capitalize first letter
