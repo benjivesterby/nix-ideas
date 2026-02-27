@@ -132,10 +132,36 @@ Item {
         }
             
         // When menu is closed, rect2 = rect1 so it smoothly grows out of/into the icon
-        property rect rect2: (root.menuRect.width > 0 && bubbleBackground.allowsAnimation)
-            ? Qt.rect(root.menuRect.x, (root.menuRect.y - root.y) - minY,
-                      root.menuRect.width, root.menuRect.height)
-            : rect1
+        property real targetR1X: {
+            if (!activeItem) return 0;
+            if (root.hoveredItem !== null) return 6;
+            if (bubbleBackground.opacity > 0) return 6;
+            return root.lastHoveredRect.x + root.lastHoveredRect.width / 2;
+        }
+        
+        property real targetR1W: {
+            if (!activeItem) return 0;
+            if (root.hoveredItem !== null) return (root.expanded ? root.width - 12 : activeItem.width + 12);
+            if (bubbleBackground.opacity > 0) return (root.expanded ? root.width - 12 : root.lastHoveredRect.width + 12);
+            return 0;
+        }
+        
+        property real targetR1H: {
+            if (!activeItem) return 0;
+            if (root.hoveredItem !== null) return activeItem.height;
+            if (bubbleBackground.opacity > 0) return root.lastHoveredRect.height;
+            return 0;
+        }
+
+        property real r2x: (root.menuRect.width > 0 && bubbleBackground.allowsAnimation) ? root.menuRect.x : targetR1X
+        property real r2w: (root.menuRect.width > 0 && bubbleBackground.allowsAnimation) ? root.menuRect.width : targetR1W
+        property real r2h: (root.menuRect.width > 0 && bubbleBackground.allowsAnimation) ? root.menuRect.height : targetR1H
+
+        Behavior on r2x { enabled: bubbleBackground.allowsAnimation; PropertyAnimation { duration: Theme.animationDuration; easing.type: Easing.OutQuad } }
+        Behavior on r2w { enabled: bubbleBackground.allowsAnimation; PropertyAnimation { duration: Theme.animationDuration; easing.type: Easing.OutQuad } }
+        Behavior on r2h { enabled: bubbleBackground.allowsAnimation; PropertyAnimation { duration: Theme.animationDuration; easing.type: Easing.OutQuad } }
+
+        property rect rect2: Qt.rect(r2x, rect1.y, r2w, r2h)
         property rect rect3: Qt.rect(0, 0, 0, 0)
         property real radius1: 10
         property real radius2: 10
@@ -144,11 +170,6 @@ Item {
         property color bubbleColor: "#ffffff"
         property real uWidth: bubbleBackground.width
         property real uHeight: bubbleBackground.height
-
-        Behavior on rect2 {
-            enabled: bubbleBackground.allowsAnimation
-            PropertyAnimation { duration: Theme.animationDuration; easing.type: Easing.OutQuad }
-        }
 
         // Entire visibility tied directly to isHovered to match subMenuBlob pattern
         opacity: root.isHovered ? 1.0 : 0.0

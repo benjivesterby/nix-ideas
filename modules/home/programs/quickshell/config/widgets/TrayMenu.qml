@@ -122,15 +122,31 @@ PopupWindow {
                 PropertyAnimation { duration: Theme.animationDuration; easing.type: Easing.OutQuad }
             }
                 
-            property rect rect2: (root.activeSubMenuItem && root.childMenu && root.childMenu.shouldShow && menuBlob.allowsAnimation)
-                ? Qt.rect(root.activeSubMenuItem.x + 8 + root.activeSubMenuItem.width, 
-                         root.activeSubMenuItem.y + 2, root.childMenu.baseWidth, root.childMenu.baseHeight)
-                : rect1
-
-            Behavior on rect2 { 
-                enabled: menuBlob.allowsAnimation
-                PropertyAnimation { duration: Theme.animationDuration; easing.type: Easing.OutQuad } 
+            property real targetR1X: {
+                if (!root.activeSubMenuItem) return 0;
+                return root.activeSubMenuItem.x + 8;
             }
+            property real targetR1W: {
+                if (!root.activeSubMenuItem) return 0;
+                return root.activeSubMenuItem.width;
+            }
+            property real targetR1H: {
+                if (!root.activeSubMenuItem) return 0;
+                return root.activeSubMenuItem.height;
+            }
+
+            property real r2x: (root.activeSubMenuItem && root.childMenu && root.childMenu.shouldShow && menuBlob.allowsAnimation)
+                ? root.activeSubMenuItem.x + 8 + root.activeSubMenuItem.width : targetR1X
+            property real r2w: (root.activeSubMenuItem && root.childMenu && root.childMenu.shouldShow && menuBlob.allowsAnimation)
+                ? root.childMenu.baseWidth : targetR1W
+            property real r2h: (root.activeSubMenuItem && root.childMenu && root.childMenu.shouldShow && menuBlob.allowsAnimation)
+                ? root.childMenu.baseHeight : targetR1H
+
+            Behavior on r2x { enabled: menuBlob.allowsAnimation; PropertyAnimation { duration: Theme.animationDuration; easing.type: Easing.OutQuad } }
+            Behavior on r2w { enabled: menuBlob.allowsAnimation; PropertyAnimation { duration: Theme.animationDuration; easing.type: Easing.OutQuad } }
+            Behavior on r2h { enabled: menuBlob.allowsAnimation; PropertyAnimation { duration: Theme.animationDuration; easing.type: Easing.OutQuad } }
+
+            property rect rect2: Qt.rect(r2x, rect1.y, r2w, r2h)
 
             property rect rect3: Qt.rect(0, 0, 0, 0)
             property real radius1: 8
