@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Effects
 import Quickshell
+import Quickshell.Wayland
 import "../services/"
 import "." as Widgets
 
@@ -37,63 +38,106 @@ Scope {
 
                 exclusionMode: ExclusionMode.Ignore
 
-                mask: Region {
-                    Region { item: clock }
-                    Region { item: workspaces }
-                    Region { item: tray }
-                    Region {
-                        x: 0
-                        y: tray.y + tray.bubbleBg.y
-                        width: tray.bubbleBg.width
-                        height: tray.bubbleBg.height
-                    }
+                // mask is set dynamically in updateBlurRegion
+
+                property var registeredBlurItems: BlurRegistry.getItemsForGroup("leftBarScope")
+                onRegisteredBlurItemsChanged: updateBlurRegion()
+
+                Item {
+                    id: offscreenAnchorLeft
+                    x: -9999; y: -9999; width: 1; height: 1
+                    visible: true; opacity: 0.0
                 }
 
-                Backdrop {
-                    enabled: !Niri.overviewActive
-                    width: 56
-                    anchors.left: parent.left
-                }
-
-                SysTray {
-                    id: tray
-                    anchors.left: parent.left
-                    y: 10
+                function updateBlurRegion() {
+                    var items = registeredBlurItems || [];
                     
-                    menuRect: {
-                        if (!mainTrayMenu.shouldShow || !hoveredItem) return Qt.rect(0, 0, 0, 0);
-                        var pos = hoveredItem.mapToItem(leftPanel.contentItem, 0, 0);
-                        // Increase overlap (248 < 260) for a smoother bridge transition
-                        var menuX = tray.expanded ? 248 : 45;
-                        // Align perfectly with the tray item top (pos.y) instead of offseting by -2
-                        return Qt.rect(menuX, pos.y, mainTrayMenu.baseWidth, mainTrayMenu.baseHeight);
+                    // Blur Region
+                    var blurStr = "import Quickshell; import Quickshell.Wayland; Region {\n";
+                    if (items.length === 0) {
+                        blurStr += "    Region { item: offscreenAnchorLeft }\n";
+                    } else {
+                        for (var i = 0; i < items.length; i++) {
+                            blurStr += "    property var item" + i + ": leftPanel.registeredBlurItems[" + i + "];\n";
+                            blurStr += "    Region { item: item" + i + "; radius: typeof item" + i + " !== 'undefined' && item" + i + " ? (item" + i + ".radius || 0) : 0 }\n";
+                        }
                     }
+                    blurStr += "}";
+                    if (leftPanel.BackgroundEffect.blurRegion) leftPanel.BackgroundEffect.blurRegion.destroy();
+                    leftPanel.BackgroundEffect.blurRegion = Qt.createQmlObject(blurStr, leftPanel, "dynamicBlurRegionLeft");
+                    
+                    // Window Mask (includes static widgets + registered items)
+                    var maskStr = "import Quickshell; import Quickshell.Wayland; Region {\n";
+                    maskStr += "    Region { item: clockContainer }\n";
+                    maskStr += "    Region { item: workspaces }\n";
+                    maskStr += "    Region { item: tray }\n";
+                    maskStr += "    Region {\n";
+                    // Need to use integer bindings for Region custom rects
+                    maskStr += "        x: Math.round(tray.menuRect.x)\n";
+                    maskStr += "        y: Math.round(tray.menuRect.y)\n";
+                    maskStr += "        width: Math.round(tray.menuRect.width)\n";
+                    maskStr += "        height: Math.round(tray.menuRect.height)\n";
+                    maskStr += "    }\n";
+                    for (var j = 0; j < items.length; j++) {
+                        maskStr += "    property var item" + j + ": leftPanel.registeredBlurItems[" + j + "];\n";
+                        maskStr += "    Region { item: item" + j + "; radius: typeof item" + j + " !== 'undefined' && item" + j + " ? (item" + j + ".radius || 0) : 0 }\n";
+                    }
+                    maskStr += "}";
+                    if (leftPanel.mask) leftPanel.mask.destroy();
+                    leftPanel.mask = Qt.createQmlObject(maskStr, leftPanel, "dynamicMaskLeft");
                 }
 
-                Workspaces {
-                    id: workspaces
-                    width: 56
-                    anchors.left: parent.left
-                    anchors.leftMargin: 0
-                    y: parent.height / 2 - height / 2
-                }
+                Item {
+                    id: leftBarScope
+                    anchors.fill: parent
+                    property string blurGroupId: "leftBarScope"
 
-                Column {
-                    anchors.left: parent.left
-                    anchors.bottom: parent.bottom
-                    anchors.bottomMargin: 15
-                    spacing: Niri.overviewActive ? 17 : 0
+                    Backdrop {
+                        enabled: !Niri.overviewActive
+                        width: 56
+                        anchors.left: parent.left
+                    }
 
-                    Behavior on spacing { NumberAnimation { duration: Theme.animationDuration; easing.type: Easing.OutQuad } }
+                    SysTray {
+                        id: tray
+                        anchors.left: parent.left
+                        y: 10
+                        
+                        menuRect: {
+                            if (!mainTrayMenu.shouldShow || !hoveredItem) return Qt.rect(0, 0, 0, 0);
+                            var pos = hoveredItem.mapToItem(leftPanel.contentItem, 0, 0);
+                            // Increase overlap (248 < 260) for a smoother bridge transition
+                            var menuX = tray.expanded ? 248 : 45;
+                            // Align perfectly with the tray item top (pos.y) instead of offseting by -2
+                            return Qt.rect(menuX, pos.y, mainTrayMenu.baseWidth, mainTrayMenu.baseHeight);
+                        }
+                    }
 
-                    Item {
-                        id: clockContainer
-                        width: Theme.widgetExpandedWidth
-                        height: 80
+                    Workspaces {
+                        id: workspaces
+                        width: 56
+                        anchors.left: parent.left
+                        anchors.leftMargin: 0
+                        y: parent.height / 2 - height / 2
+                    }
 
-                        Time {
-                            id: clock
-                            anchors.left: parent.left
+                    Column {
+                        anchors.left: parent.left
+                        anchors.bottom: parent.bottom
+                        anchors.bottomMargin: 15
+                        spacing: Niri.overviewActive ? 17 : 0
+
+                        Behavior on spacing { NumberAnimation { duration: Theme.animationDuration; easing.type: Easing.OutQuad } }
+
+                        Item {
+                            id: clockContainer
+                            width: Theme.widgetExpandedWidth
+                            height: 80
+
+                            Time {
+                                id: clock
+                                anchors.left: parent.left
+                            }
                         }
                     }
                 }
@@ -116,6 +160,7 @@ Scope {
         model: Quickshell.screens
 
         PanelWindow {
+            id: rightPanel
             required property var modelData
             screen: modelData
 
@@ -136,66 +181,102 @@ Scope {
             // For now, I will just fix the visibility issue in this step.
             exclusionMode: ExclusionMode.Ignore
 
-            mask: Region {
-                Region {
-                    item: battery
-                }
-                Region {
-                    item: brightness
-                }
-                Region {
-                    item: volume
-                }
+            // static mask removed; handled dynamically in updateBlurRegion
+
+            property var registeredBlurItems: BlurRegistry.getItemsForGroup("rightBarScope")
+            onRegisteredBlurItemsChanged: updateBlurRegion()
+
+            Item {
+                id: offscreenAnchorRight
+                x: -9999; y: -9999; width: 1; height: 1
+                visible: true; opacity: 0.0
             }
 
-            Backdrop {
-                // enabled: Niri.hasRightOverflow
-                enabled: !Niri.overviewActive
-                width: 56
-                anchors.right: parent.right
+            function updateBlurRegion() {
+                var items = registeredBlurItems || [];
                 
-                // Override gradient to fade from Right (Opaque) to Left (Transparent)
-                // This avoids using rotation: 180 which causes pixel alignment issues
-                gradient: Gradient {
-                    orientation: Gradient.Horizontal
-                    GradientStop { position: 0.0; color: Colors.alpha(Colors.palette.crust, 0.0) }
-                    GradientStop { position: 0.4; color: Colors.alpha(Colors.palette.crust, 0.65) }
-                    GradientStop { position: 1.0; color: Colors.alpha(Colors.palette.crust, 1.0) }
+                // Blur Region
+                var blurStr = "import Quickshell; import Quickshell.Wayland; Region {\n";
+                if (items.length === 0) {
+                    blurStr += "    Region { item: offscreenAnchorRight }\n";
+                } else {
+                    for (var i = 0; i < items.length; i++) {
+                        blurStr += "    property var item" + i + ": rightPanel.registeredBlurItems[" + i + "];\n";
+                        blurStr += "    Region { item: item" + i + "; radius: typeof item" + i + " !== 'undefined' && item" + i + " ? (item" + i + ".radius || 0) : 0 }\n";
+                    }
                 }
+                blurStr += "}";
+                if (rightPanel.BackgroundEffect.blurRegion) rightPanel.BackgroundEffect.blurRegion.destroy();
+                rightPanel.BackgroundEffect.blurRegion = Qt.createQmlObject(blurStr, rightPanel, "dynamicBlurRegionRight");
+
+                // Window Mask (static base items + dynamic bounds)
+                var maskStr = "import Quickshell; import Quickshell.Wayland; Region {\n";
+                maskStr += "    Region { item: battery }\n";
+                maskStr += "    Region { item: brightness }\n";
+                maskStr += "    Region { item: volume }\n";
+                for (var i = 0; i < items.length; i++) {
+                    maskStr += "    property var item" + i + ": rightPanel.registeredBlurItems[" + i + "];\n";
+                    maskStr += "    Region { item: item" + i + "; radius: typeof item" + i + " !== 'undefined' && item" + i + " ? (item" + i + ".radius || 0) : 0 }\n";
+                }
+                maskStr += "}";
+                if (rightPanel.mask) rightPanel.mask.destroy();
+                rightPanel.mask = Qt.createQmlObject(maskStr, rightPanel, "dynamicMaskRight");
             }
 
-            Column {
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: 10
-                anchors.right: parent.right
-                spacing: Niri.overviewActive ? 17 : 0
+            Item {
+                id: rightBarScope
+                anchors.fill: parent
+                property string blurGroupId: "rightBarScope"
 
-                Behavior on spacing { NumberAnimation { duration: Theme.animationDuration; easing.type: Easing.OutQuad } }
-
-                Item {
-                    width: Theme.widgetExpandedWidth
-                    height: volume.height
-                    Widgets.VolumeWidget {
-                        id: volume
-                        anchors.right: parent.right
+                Backdrop {
+                    // enabled: Niri.hasRightOverflow
+                    enabled: !Niri.overviewActive
+                    width: 56
+                    anchors.right: parent.right
+                    
+                    // Override gradient to fade from Right (Opaque) to Left (Transparent)
+                    // This avoids using rotation: 180 which causes pixel alignment issues
+                    gradient: Gradient {
+                        orientation: Gradient.Horizontal
+                        GradientStop { position: 0.0; color: Colors.alpha(Colors.palette.crust, 0.0) }
+                        GradientStop { position: 0.4; color: Colors.alpha(Colors.palette.crust, 0.65) }
+                        GradientStop { position: 1.0; color: Colors.alpha(Colors.palette.crust, 1.0) }
                     }
                 }
 
-                Item {
-                    width: Theme.widgetExpandedWidth
-                    height: brightness.height
-                    Widgets.BrightnessWidget {
-                        id: brightness
-                        anchors.right: parent.right
-                    }
-                }
+                Column {
+                    anchors.bottom: parent.bottom
+                    anchors.bottomMargin: 10
+                    anchors.right: parent.right
+                    spacing: Niri.overviewActive ? 17 : 0
 
-                Item {
-                    width: Theme.widgetExpandedWidth
-                    height: battery.height
-                    Battery {
-                        id: battery
-                        anchors.right: parent.right
+                    Behavior on spacing { NumberAnimation { duration: Theme.animationDuration; easing.type: Easing.OutQuad } }
+
+                    Item {
+                        width: Theme.widgetExpandedWidth
+                        height: volume.height
+                        Widgets.VolumeWidget {
+                            id: volume
+                            anchors.right: parent.right
+                        }
+                    }
+
+                    Item {
+                        width: Theme.widgetExpandedWidth
+                        height: brightness.height
+                        Widgets.BrightnessWidget {
+                            id: brightness
+                            anchors.right: parent.right
+                        }
+                    }
+
+                    Item {
+                        width: Theme.widgetExpandedWidth
+                        height: battery.height
+                        Battery {
+                            id: battery
+                            anchors.right: parent.right
+                        }
                     }
                 }
             }
